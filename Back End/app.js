@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-const prisma = require("./db/prisma");
+const prisma = require("./repositories/prisma");
 const session = require("express-session");
 const passport = require("passport");
 const bcrypt = require("bcryptjs")
