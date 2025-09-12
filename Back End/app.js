@@ -1,10 +1,10 @@
-const { body, validationResult } = require("express-validator");
 const prisma = require("./repositories/prisma");
-const session = require("express-session");
 const passport = require("passport");
-const bcrypt = require("bcryptjs")
-const LocalStrategy = require('passport-local').Strategy;
-const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt;
+const fs = require('fs');
+const cookieParser = require('cookie-parser');
+var cors = require('cors')
 require('dotenv').config();
 
 
@@ -15,6 +15,11 @@ const path = require("path");
 //initalizes the express application
 const app = express();
 
+const corsOptions = {
+  origin: 'http://localhost:5173', // your frontend URL here
+  credentials: true,               // enable Set-Cookie and other credentials
+};
+app.use(cors(corsOptions));
 
 //set the folder containing view templates to ./views
 app.set("views", path.join(__dirname, "views"));
@@ -26,87 +31,48 @@ app.set("view engine", "ejs");
 const assetsPath = path.join(__dirname, "public");
 app.use(express.static(assetsPath));
 
-//parse form data into req.body
+//parse json into req.body object
+app.use(express.json());
+
+//parses form data into req.body
 app.use(express.urlencoded({ extended: true }));
 
-//for postman testing, can now parse json into req.body object
-app.use(express.json());
+//parse cookies
+app.use(cookieParser());
 
 
 /**
  *  -------------------- PASSPORT SETUP --------------------
  */
 
-const sessionStore = new PrismaSessionStore(
-      prisma,
-      {
-        checkPeriod: 2 * 60 * 1000,  //ms
-        dbRecordIdIsSessionId: false,
-        dbRecordIdFunction: undefined,
-      }
-    );
-
-//passport setup
-app.use(session({
-  store: sessionStore,
-  secret: process.env.SESSION_PASSWORD,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 *24
-  },
- }));
 app.use(passport.initialize());
-app.use(passport.session());
-app.use(express.urlencoded({ extended: false }));
 
+//asynchronous key, verify identity with public key.
+const pathToKey = path.join(__dirname, 'id_rsa_pub.pem');
+const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
-passport.use(
-  new LocalStrategy(async (username, password, done) => {
+const options = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: PUB_KEY,
+  algorithms: ['RS256']
+};
+
+const strategy = new JwtStrategy(options, async (payload,done) => {
     try {
-
       const user = await prisma.user.findUnique({
-        where: {username: username}
+        where: {id: payload.sub}
       });
-
+      console.log(payload);
       if (!user) {
-        //req.flash("errors", "Incorrect username, sign up instead?");
-        return done(null, false, { message: "Incorrect username, sign up instead?" });
-      }
-      const match = await bcrypt.compare(password, user.password);
-      if (!match) {
-        // passwords do not match!
-        //req.flash("errors", "Incorrect password");
-        return done(null, false, { message: "Incorrect password" })
+        return done(null, false, { message: "Incorrect id" });
       }
       return done(null, user);
     } catch(err) {
       return done(err);
     }
-  })
-);
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await prisma.user.findUnique({
-        where: {id: id}
-      });
-
-    done(null, user);
-  } catch(err) {
-    done(err);
-  }
-});
-
-//middleware for providing user data to all authenticated EJS files
-app.use((req,res,next) => {
-  res.locals.user = req.isAuthenticated ? (req.isAuthenticated() ? req.user : null) : null;
-  next();
-})
+passport.use(strategy);
 
 /**
  *  -------------------- ROUTER--------------------
@@ -114,7 +80,13 @@ app.use((req,res,next) => {
 
 //serve index router when root is visited
 const indexRouter = require("./routes/indexRouter");
-app.use("/",indexRouter);
+const usersRouter = require("./routes/usersRouter");
+const authRouter = require("./routes/authRouter");
+const refreshRouter = require("./routes/refreshRouter");
+app.use(indexRouter);
+app.use(usersRouter);
+app.use(authRouter);
+app.use(refreshRouter);
 
 /**
  * -------------------- ERROR HANDLING --------------------

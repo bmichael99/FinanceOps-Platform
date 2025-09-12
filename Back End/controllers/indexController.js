@@ -2,7 +2,6 @@ const { body, validationResult } = require("express-validator");
 const db = require("../repositories/userRepository")
 const passport = require("passport");
 const bcrypt = require("bcryptjs")
-const { isAuth } = require("../middlewares/authMiddleware");
 require('dotenv').config()
 
 exports.showHomePage = (req,res) => {
