@@ -16,7 +16,7 @@ const path = require("path");
 const app = express();
 
 const corsOptions = {
-  origin: 'http://localhost:5173', // your frontend URL here
+  origin: ['http://localhost:5173', 'http://localhost:4173'], // your frontend URL here
   credentials: true,               // enable Set-Cookie and other credentials
 };
 app.use(cors(corsOptions));
@@ -62,7 +62,7 @@ const strategy = new JwtStrategy(options, async (payload,done) => {
       const user = await prisma.user.findUnique({
         where: {id: payload.sub}
       });
-      console.log(payload);
+      console.log("payload:",payload);
       if (!user) {
         return done(null, false, { message: "Incorrect id" });
       }
@@ -83,10 +83,12 @@ const indexRouter = require("./routes/indexRouter");
 const usersRouter = require("./routes/usersRouter");
 const authRouter = require("./routes/authRouter");
 const refreshRouter = require("./routes/refreshRouter");
+const invoiceRouter = require("./routes/invoiceRouter");
 app.use(indexRouter);
 app.use(usersRouter);
 app.use(authRouter);
 app.use(refreshRouter);
+app.use(invoiceRouter);
 
 /**
  * -------------------- ERROR HANDLING --------------------
