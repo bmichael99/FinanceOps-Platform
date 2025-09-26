@@ -10,15 +10,21 @@ const useFetchPrivate = () => {
   const refresh = useRefreshToken();
   const navigate = useNavigate();
 
-  const fetchPrivate = useCallback(async (endpoint : string, method : string, bodyData ?: object)=> {
+  const fetchPrivate = useCallback(async (endpoint : string, method : string, bodyData ?: BodyInit | null, content_type ?: string)=> {
     const makeRequest = async (token : string) => {
+      const headers : HeadersInit | undefined = {
+        'Authorization' : token,
+      }
+
+      if(content_type && !(bodyData instanceof FormData)){
+        headers["Content-Type"] = content_type;
+      }
+
+
       return await fetch(API_URL + endpoint, {
         method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token,
-        },
-        body: JSON.stringify(bodyData),
+        headers: headers,
+        body: bodyData,
       });
     };
 
