@@ -21,7 +21,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 function LoginPage() {
   const navigate = useNavigate();
 
-  const {auth, setAuth} = useAuth();
+  const {setAuth} = useAuth();
 
   const FormSchema = z.object({
     username: z.string().min(4, {
