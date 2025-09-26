@@ -12,6 +12,7 @@ import useFetchPrivate from '@/hooks/useFetchPrivate';
 import { CloudUpload, FileText, FileTextIcon, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react'
 import * as z from "zod";
+
 function UploadInvoicePage() {
   type fileType = {
     id: string,
@@ -27,7 +28,9 @@ function UploadInvoicePage() {
   const fileSchema = z.array(
     z.object({
       id: z.string(),
-      file: z.file().max(4_000_000, {error: "Files must be smaller than 4MB"}),
+      file: z.file()
+            .max(4_000_000, {error: "Files must be smaller than 4MB."})
+            .mime(["application/pdf"], {error: "Files must be in .pdf format."}),
     })
   )
   .min(1, { error: "Must upload at least 1 file." })
@@ -37,16 +40,17 @@ function UploadInvoicePage() {
     const formData = new FormData();
 
     for(let i = 0; i < files.length; i++){
+      console.log(files[i].file.name);
       formData.append("files", files[i].file);
+      
     }
-    
-    const response = await fetch('http://localhost:3001/upload',{
-      method: 'POST',
-      body: formData,
-    });
+
+
+    const response = await fetchPrivate("/invoices","POST", formData);
 
     if (response.ok) {
       console.log("Upload successful");
+      console.log(response);
     } else {
       console.error("Upload failed");
     }
@@ -54,9 +58,9 @@ function UploadInvoicePage() {
   }
 
   function validateFiles(newFiles: fileType[]) : boolean{
-    const result = fileSchema.safeParse(newFiles);
-    if(!result.success){
-      const errors : any[] = JSON.parse(result.error.message);
+    const parse = fileSchema.safeParse(newFiles);
+    if(!parse.success){
+      const errors : any[] = JSON.parse(parse.error.message);
       setError(errors.map((error) => error.message));
       return false;
     }
@@ -110,7 +114,7 @@ function UploadInvoicePage() {
 
   return (
     <div className='flex flex-col justify-center items-center'>
-      <Card className='w-full my-4'>
+      <Card className='w-full max-w-6xl my-4'>
         <CardHeader>
           <CardTitle className='flex gap-1 items-center'><CloudUpload/>Upload files here</CardTitle>
           <CardDescription>Upload files to be processed.</CardDescription>
