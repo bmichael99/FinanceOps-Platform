@@ -3,10 +3,8 @@ require('dotenv').config({ path: '../.env' });
 const fs = require("fs");
 const path = require("path");
 const azure = require('./Azure');
-const prompt = require('prompt-sync')();
 const {tablesToMarkdown} = require("./tablesToMarkdown.js");
 const graphAPI = require("./MSGraphClient.js");
-const { invoice } = require("./prisma.js");
 
 
 function transformCellsToRows(cells) {
@@ -77,15 +75,11 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
   try{
     const invoicePath = path.resolve(__dirname, "../invoices",fileName);
     const rawData = await azure.getDocumentData(invoicePath);
-    const rawDataJSON = JSON.stringify(rawData, null, 2);
 
     let fieldsData = {};
-    let tableData;
     let invoiceTotalConfidence = 1;
     let fieldConfidences = [];
-    //console.log(rawDataJSON);
     const documentFields = rawData.documents?.[0]?.fields;
-    //await fs.promises.appendFile(path.resolve(__dirname, "../invoices/new.json"), rawDataJSON);
 
     if(documentFields){
       for (const [fieldName, fieldData] of Object.entries(documentFields)) {
@@ -107,25 +101,10 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
     fieldsData['paymentStatus'] = paymentStatus;
     fieldsData['fileIdSharepoint'] = fileId;
 
-    /*
-    //manual input for invoiceTotal. Migrating over to dashboard.
-    console.log("confidence:",invoiceTotalConfidence);
-    if(!fieldsData['InvoiceTotal']){
-      let InvoiceTotal = prompt(`${fieldsData['fileName']} invoice total [N/A]:`);
-      fieldsData['InvoiceTotal'] = InvoiceTotal;
-    } else{
-      let InvoiceTotal = prompt(`${fieldsData['fileName']} invoice total [${fieldsData['InvoiceTotal']}]:`);
-      if(InvoiceTotal != ""){
-        fieldsData['InvoiceTotal'] = InvoiceTotal;
-      }
-    }
-    */
-
-    //store invoice in db
-    //const storeInvoice = await db.createInvoice(fieldsData);
+    //TODO: Change this to update, we create the record when file is first uploaded and keep track of status,
+    //update status here as well
     const storeUnprocessedInvoice = await db.createUnprocessedInvoice({...fieldsData, fieldConfidences});
 
-    
     //convert tables from invoice to markdown then store in db
     let tables = mergeTables(rawData.tables);
     const markdownTables = tablesToMarkdown(tables);
@@ -133,9 +112,6 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
       //console.log(table);
       const storeUprocessedInvoiceTable = await db.createUnprocessedInvoiceTable({invoiceTableDataAsMarkdown: table, invoiceId: storeUnprocessedInvoice.id});
     }
-
-    
-
 
     console.log(fileName, " processing success.");
   } catch(err){
