@@ -94,7 +94,7 @@ app.use(invoiceRouter);
  * -------------------- ERROR HANDLING --------------------
  */
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   if (err.code === 'P2002') {
     return res.status(409).json({ message: 'Username already exists' });
   }
