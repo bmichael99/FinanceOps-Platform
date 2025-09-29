@@ -80,7 +80,6 @@ exports.createInvoice = async ({
   } catch(err){
     throw err;
   }
-  
 }
 
 exports.createUnprocessedInvoice = async ({
