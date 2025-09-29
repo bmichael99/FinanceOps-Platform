@@ -42,7 +42,6 @@ function UploadInvoicePage() {
     for(let i = 0; i < files.length; i++){
       console.log(files[i].file.name);
       formData.append("files", files[i].file);
-      
     }
 
 
@@ -148,6 +147,19 @@ function UploadInvoicePage() {
           {error && <p className="text-red-600">{error}</p>}
         </CardContent>
       </Card>
+
+
+      {/*Display recent upload status(24hr)*/}
+      <Card className='w-full max-w-6xl'>
+        <CardHeader >
+          <CardTitle>Recent Uploads</CardTitle>
+          <CardDescription>View status of recent uploads. (24hrs)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          
+        </CardContent>
+      </Card>
+
     </div>
     
   )
