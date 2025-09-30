@@ -1,11 +1,12 @@
-const prisma = require("./repositories/prisma");
-const passport = require("passport");
-const JwtStrategy = require('passport-jwt').Strategy,
-    ExtractJwt = require('passport-jwt').ExtractJwt;
-const fs = require('fs');
-const cookieParser = require('cookie-parser');
-var cors = require('cors')
-require('dotenv').config();
+import prisma from "./repositories/prisma";
+import passport from "passport";
+import fs from "fs";
+import cookieParser from "cookie-parser";
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import cors from "cors";
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 
 //imports the express framework
@@ -79,11 +80,12 @@ passport.use(strategy);
  */
 
 //serve index router when root is visited
-const indexRouter = require("./routes/indexRouter");
-const usersRouter = require("./routes/usersRouter");
-const authRouter = require("./routes/authRouter");
-const refreshRouter = require("./routes/refreshRouter");
-const invoiceRouter = require("./routes/invoiceRouter");
+import indexRouter from "./routes/indexRouter";
+import usersRouter from "./routes/usersRouter";
+import authRouter from "./routes/authRouter";
+import refreshRouter from "./routes/refreshRouter";
+import invoiceRouter from "./routes/invoiceRouter";
+
 app.use(indexRouter);
 app.use(usersRouter);
 app.use(authRouter);

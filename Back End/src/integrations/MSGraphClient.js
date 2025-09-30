@@ -1,11 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const { Client } = require("@microsoft/microsoft-graph-client");
-const { ConfidentialClientApplication } = require("@azure/msal-node");
-const { DocumentAnalysisClient, AzureKeyCredential } = require("@azure/ai-form-recognizer");
-const { PrismaClient } = require("@prisma/client");
-const db = require("./prismaQueries");
-const controller = require("./mockController");
+import * as db from "../repositories/invoiceRepository";
+import * as controller from "./mockController";
+import { ConfidentialClientApplication } from "@azure/msal-node";
+import {Client} from "@microsoft/microsoft-graph-client";
+import path from "path";
+import fs from "fs";
+
 
 
 /**
@@ -34,7 +33,7 @@ async function getAccessToken() {
   return result.accessToken;
 }
 
-async function createGraphClient() {
+export async function createGraphClient() {
   const token = await getAccessToken();
   return Client.init({
     authProvider: (done) => done(null, token),
@@ -59,12 +58,12 @@ async function downloadFile(graphClient, fileId, savePath) {
   }
 }
 
-async function listChildren(graphClient, folderId) {
+export async function listChildren(graphClient, folderId) {
   const response = await graphClient.api(`/sites/${process.env.SHAREPOINT_SITE_ID}/drives/${process.env.SHAREPOINT_INVOICES_DRIVE_ID}/items/${folderId}/children`).get();
   return response.value;
 }
 
-async function getPreview(graphClient,fileId){
+export async function getPreview(graphClient,fileId){
   try {
     const response = await graphClient.api(`/sites/${process.env.SHAREPOINT_SITE_ID}/drives/${process.env.SHAREPOINT_INVOICES_DRIVE_ID}/items/${fileId}/preview`).post();
     return response;
@@ -74,7 +73,7 @@ async function getPreview(graphClient,fileId){
   }
 }
 
-async function traverseAndProcess(graphClient, parentId, level = 0, context = {}) {
+export async function traverseAndProcess(graphClient, parentId, level = 0, context = {}) {
   const children = await listChildren(graphClient, parentId);
 
   for (const item of children) {
@@ -172,26 +171,4 @@ async function traverseAndProcess(graphClient, parentId, level = 0, context = {}
       console.log(`Processed: ${projectName}/${payableOrReceivable}/${paidOrUnpaid}/${fileName}`);
     }
   }
-}
-
-/**
- * -------------------- MAIN --------------------
- */
-
-async function main() {
-  const graphClient = await createGraphClient();
-  //const sites = await listChildren(graphClient,0);
-  //console.log(sites);
-
-  const rootFolderId = process.env.SHAREPOINT_INVOICES_FOLDER_ID;
-  await traverseAndProcess(graphClient, rootFolderId);
-}
-
-//main().catch(console.error);
-
-module.exports = {
-  createGraphClient,
-  traverseAndProcess,
-  listChildren,
-  getPreview,
 }

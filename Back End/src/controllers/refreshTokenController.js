@@ -1,12 +1,14 @@
-const { body, validationResult } = require("express-validator");
-const db = require("../repositories/userRepository")
-const jsonwebtoken = require("jsonwebtoken");
-require('dotenv').config()
-const fs = require('fs');
+import * as db from "../repositories/userRepository";
+import jsonwebtoken from "jsonwebtoken";
+import fs from "fs";
+import dotenv from 'dotenv';
+dotenv.config();
 const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
 const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
 
-exports.handleRefreshToken = async (req,res, next) => {
+
+
+export const handleRefreshToken = async (req,res) => {
   const cookies = req.cookies;
   
   //check for jwt cookie that we saved in http-only

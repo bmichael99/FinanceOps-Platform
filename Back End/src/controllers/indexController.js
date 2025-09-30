@@ -1,14 +1,14 @@
-const { body, validationResult } = require("express-validator");
-const db = require("../repositories/userRepository")
-const passport = require("passport");
-const bcrypt = require("bcryptjs")
-require('dotenv').config()
+import bcrypt from 'bcryptjs';
+import passport from "passport";
+import * as db from "../repositories/userRepository"
+import dotenv from 'dotenv';
+dotenv.config();
 
-exports.showHomePage = (req,res) => {
+export const showHomePage = (req,res) => {
   res.render('index', {title: 'Express Template!'});
 };
 
-exports.SignUpPost = async (req,res, next) => {
+export const SignUpPost = async (req,res, next) => {
   try{
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     await db.createUser(req.body.first_name, req.body.last_name, req.body.username,hashedPassword);
@@ -19,7 +19,7 @@ exports.SignUpPost = async (req,res, next) => {
   }
 };
 
-exports.LogInPost = (req,res,next) => {
+export const LogInPost = (req,res,next) => {
     passport.authenticate("local", {
     successRedirect: "/",
     failureRedirect: "/"

@@ -1,33 +1,32 @@
-const db = require("../services/prismaQueries")
-require('dotenv').config({ path: '../.env' });
-const fs = require("fs");
-const path = require("path");
-const azure = require('./Azure');
-const {tablesToMarkdown} = require("./tablesToMarkdown.js");
-const graphAPI = require("./MSGraphClient.js");
+import dotenv from 'dotenv';
+dotenv.config();
+import path from "path";
+import * as db from "../services/prismaQueries";
+import {tablesToMarkdown} from "./tablesToMarkdown.js";
+import * as azure from "./Azure.js";
 
 
-function transformCellsToRows(cells) {
-  const headers = [];
-  const rows = {};
+// function transformCellsToRows(cells) {
+//   const headers = [];
+//   const rows = {};
 
-  for (const cell of cells) {
-    const { kind, content, columnIndex, rowIndex } = cell;
+//   for (const cell of cells) {
+//     const { kind, content, columnIndex, rowIndex } = cell;
 
-    if (kind === "columnHeader" && rowIndex === 0) {
-      headers[columnIndex] = content.replace(/\n/g, ' ').trim();
-    } else if (kind === "content") {
-      if (!rows[rowIndex]) rows[rowIndex] = {};
-      const key = headers[columnIndex] || `Column ${columnIndex}`;
-      rows[rowIndex][key] = content.replace(/\n/g, ' ').trim();
-    }
-  }
+//     if (kind === "columnHeader" && rowIndex === 0) {
+//       headers[columnIndex] = content.replace(/\n/g, ' ').trim();
+//     } else if (kind === "content") {
+//       if (!rows[rowIndex]) rows[rowIndex] = {};
+//       const key = headers[columnIndex] || `Column ${columnIndex}`;
+//       rows[rowIndex][key] = content.replace(/\n/g, ' ').trim();
+//     }
+//   }
 
-  //Remove rows that are entirely empty
-  return Object.values(rows).filter(row => {
-    return Object.values(row).some(value => value && value.trim() !== "");
-  });
-}
+//   //Remove rows that are entirely empty
+//   return Object.values(rows).filter(row => {
+//     return Object.values(row).some(value => value && value.trim() !== "");
+//   });
+// }
 
 function mergeTables(tables){
     for(let i = 0; i < tables.length;i++){
@@ -71,13 +70,13 @@ function mergeTables(tables){
 }
 
 
-async function getDocumentData(fileName, projectName, invoiceType, paymentStatus, fileId){
+export async function getDocumentData(fileName, projectName, invoiceType, paymentStatus, fileId){
   try{
     const invoicePath = path.resolve(__dirname, "../invoices",fileName);
     const rawData = await azure.getDocumentData(invoicePath);
 
     let fieldsData = {};
-    let invoiceTotalConfidence = 1;
+    //let invoiceTotalConfidence = 1;
     let fieldConfidences = [];
     const documentFields = rawData.documents?.[0]?.fields;
 
@@ -86,7 +85,7 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
         const content = fieldData?.content?.replace(/\n/g, ' ').trim();
 
         if(fieldName == "InvoiceTotal"){
-          invoiceTotalConfidence = fieldData?.confidence;
+          //invoiceTotalConfidence = fieldData?.confidence;
         }
 
         if(fieldData && fieldData.confidence)
@@ -108,9 +107,9 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
     //convert tables from invoice to markdown then store in db
     let tables = mergeTables(rawData.tables);
     const markdownTables = tablesToMarkdown(tables);
-    for(table of markdownTables){
+    for(let table of markdownTables){
       //console.log(table);
-      const storeUprocessedInvoiceTable = await db.createUnprocessedInvoiceTable({invoiceTableDataAsMarkdown: table, invoiceId: storeUnprocessedInvoice.id});
+      await db.createUnprocessedInvoiceTable({invoiceTableDataAsMarkdown: table, invoiceId: storeUnprocessedInvoice.id});
     }
 
     console.log(fileName, " processing success.");
@@ -122,117 +121,111 @@ async function getDocumentData(fileName, projectName, invoiceType, paymentStatus
 
 }
 
-async function retrieveAllInvoices(){
-  const invoices = await db.getAllInvoices();
-  //console.log(invoices);
-  fs.writeFileSync(
-      path.resolve(__dirname, "../invoices/newinvoice.json"),
-      JSON.stringify(invoices, null, 2)
-  );
-}
+// async function retrieveAllInvoices(){
+//   const invoices = await db.getAllInvoices();
+//   //console.log(invoices);
+//   fs.writeFileSync(
+//       path.resolve(__dirname, "../invoices/newinvoice.json"),
+//       JSON.stringify(invoices, null, 2)
+//   );
+// }
 
-async function retrieveInvoices(){
-  //TODO: grabbing projectName should be based off of sharepoint folder names in the future
-  const graphClient = await graphAPI.createGraphClient();
-  const rootChildren = await graphAPI.listChildren(graphClient, process.env.SHAREPOINT_INVOICES_FOLDER_ID);
-  //console.log(rootChildren);
-  const projectNames = [];
+// async function retrieveInvoices(){
+//   //TODO: grabbing projectName should be based off of sharepoint folder names in the future
+//   const graphClient = await graphAPI.createGraphClient();
+//   const rootChildren = await graphAPI.listChildren(graphClient, process.env.SHAREPOINT_INVOICES_FOLDER_ID);
+//   //console.log(rootChildren);
+//   const projectNames = [];
 
-  for(child of rootChildren){
-    if(child.name != 'Projects')
-      projectNames.push(child.name)
-  }
+//   for(child of rootChildren){
+//     if(child.name != 'Projects')
+//       projectNames.push(child.name)
+//   }
 
-  //this could've been done in the above for loop, but who cares
-  const time = new Date();
-  const safeTime = time.toISOString().replace(/[:.]/g, '-');
+//   //this could've been done in the above for loop, but who cares
+//   const time = new Date();
+//   const safeTime = time.toISOString().replace(/[:.]/g, '-');
 
-  const newPath = path.resolve(__dirname, "../invoiceData", safeTime);
-  fs.mkdirSync(newPath);
+//   const newPath = path.resolve(__dirname, "../invoiceData", safeTime);
+//   fs.mkdirSync(newPath);
   
-  for(project of projectNames){
-    let projectInvoices = await db.getAllInvoicesByProjectName(project);
+//   for(project of projectNames){
+//     let projectInvoices = await db.getAllInvoicesByProjectName(project);
 
-    //remove all null [key,value] pairs from objects
-    projectInvoices = projectInvoices.map((invoice) => {
-      const objectArray = Object.entries(invoice).filter(([key, value]) => {
-        return (value !== null && key != "createdAt" && key != "updatedAt");
-      })
-      return Object.fromEntries(objectArray);
-    })
+//     //remove all null [key,value] pairs from objects
+//     projectInvoices = projectInvoices.map((invoice) => {
+//       const objectArray = Object.entries(invoice).filter(([key, value]) => {
+//         return (value !== null && key != "createdAt" && key != "updatedAt");
+//       })
+//       return Object.fromEntries(objectArray);
+//     })
       
     
 
-    fs.writeFileSync(
-      path.resolve(newPath, `${project}.json`),
-      JSON.stringify(projectInvoices, null, 2)
-    );
+//     fs.writeFileSync(
+//       path.resolve(newPath, `${project}.json`),
+//       JSON.stringify(projectInvoices, null, 2)
+//     );
 
-  }
-}
+//   }
+// }
 
-function manualInvoiceFetchFromFile() {
-  const invoicesRoot = path.join(__dirname, "../invoices");
+// function manualInvoiceFetchFromFile() {
+//   const invoicesRoot = path.join(__dirname, "../invoices");
 
-  fs.readdir(invoicesRoot, (err, projectFolders) => {
-    if (err) {
-      return console.error("Unable to scan invoices directory:", err);
-    }
+//   fs.readdir(invoicesRoot, (err, projectFolders) => {
+//     if (err) {
+//       return console.error("Unable to scan invoices directory:", err);
+//     }
 
-    projectFolders.forEach(projectName => {
-      const projectPath = path.join(invoicesRoot, projectName);
+//     projectFolders.forEach(projectName => {
+//       const projectPath = path.join(invoicesRoot, projectName);
 
-      if (fs.statSync(projectPath).isDirectory()) {
-        walkProjectFolder(projectName, projectPath);
-      }
-    });
-  });
-}
+//       if (fs.statSync(projectPath).isDirectory()) {
+//         walkProjectFolder(projectName, projectPath);
+//       }
+//     });
+//   });
+// }
 
-function walkProjectFolder(projectName, currentPath) {
-  fs.readdir(currentPath, (err, entries) => {
-    if (err) {
-      return console.error(`Error reading ${currentPath}:`, err);
-    }
+// function walkProjectFolder(projectName, currentPath) {
+//   fs.readdir(currentPath, (err, entries) => {
+//     if (err) {
+//       return console.error(`Error reading ${currentPath}:`, err);
+//     }
 
-    entries.forEach(async entry => {
-      const entryPath = path.join(currentPath, entry);
-      const relativePath = path.relative(path.join(__dirname, "../invoices"), entryPath);
+//     entries.forEach(async entry => {
+//       const entryPath = path.join(currentPath, entry);
+//       const relativePath = path.relative(path.join(__dirname, "../invoices"), entryPath);
 
-      const stat = fs.statSync(entryPath);
+//       const stat = fs.statSync(entryPath);
 
-      if (stat.isDirectory()) {
-        // Recurse into subfolder
-        walkProjectFolder(projectName, entryPath);
-      } else {
-        const lowerName = entry.toLowerCase();
-        const isInvoice = lowerName.includes("inv") || lowerName.includes("invoice") || lowerName.includes("receipt");
-        const isPDF = lowerName.endsWith(".pdf") || lowerName.endsWith(".pdf");
-        const maxSizeBytes = 3 * 1024 * 1024; // 3MB
+//       if (stat.isDirectory()) {
+//         // Recurse into subfolder
+//         walkProjectFolder(projectName, entryPath);
+//       } else {
+//         const lowerName = entry.toLowerCase();
+//         const isInvoice = lowerName.includes("inv") || lowerName.includes("invoice") || lowerName.includes("receipt");
+//         const isPDF = lowerName.endsWith(".pdf") || lowerName.endsWith(".pdf");
+//         const maxSizeBytes = 3 * 1024 * 1024; // 3MB
 
-        if (stat.size > maxSizeBytes) {
-          console.warn(`Skipping large file (>3MB): ${relativePath}`);
-          return;
-        }
+//         if (stat.size > maxSizeBytes) {
+//           console.warn(`Skipping large file (>3MB): ${relativePath}`);
+//           return;
+//         }
 
-        if (isInvoice && isPDF) {
-          console.log(`Processing: ${relativePath}`);
-          await getDocumentData(relativePath, projectName); // or await, if using async/await
-          //console.log(relativePath, ": ", projectName);
-        } else if (isInvoice && !isPDF) {
-          console.log(`Non-PDF invoice detected, needs conversion: ${relativePath}`);
-          // TODO: Convert this file to PDF
-        }
-      }
-    });
-  });
-}
-
-module.exports = {
-  getDocumentData,
-}
-
-
+//         if (isInvoice && isPDF) {
+//           console.log(`Processing: ${relativePath}`);
+//           await getDocumentData(relativePath, projectName); // or await, if using async/await
+//           //console.log(relativePath, ": ", projectName);
+//         } else if (isInvoice && !isPDF) {
+//           console.log(`Non-PDF invoice detected, needs conversion: ${relativePath}`);
+//           // TODO: Convert this file to PDF
+//         }
+//       }
+//     });
+//   });
+// }
 
 //manualInvoiceFetchFromFile();
 //getDocumentData();

@@ -1,11 +1,10 @@
-const { body, validationResult } = require("express-validator");
-const db = require("../repositories/userRepository")
-const passport = require("passport");
-const bcrypt = require("bcryptjs")
-const utils = require("../utils/jwtUtil");
-require('dotenv').config()
+import * as db from "../repositories/userRepository"
+import bcrypt from "bcryptjs"
+import * as utils from "../utils/jwtUtil";
+import dotenv from 'dotenv';
+dotenv.config();
 
-exports.registerUserPost = async (req,res, next) => {
+export const registerUserPost = async (req,res, next) => {
   try{
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const user = await db.createUser(req.body.firstName, req.body.username,hashedPassword);
@@ -25,7 +24,7 @@ exports.registerUserPost = async (req,res, next) => {
   }
 };
 
-exports.logInUserPost = async (req,res,next) => {
+export const logInUserPost = async (req,res,next) => {
   try{
     const user = await db.getUserByUsername(req.body.username);
     if(!user){
@@ -54,7 +53,7 @@ exports.logInUserPost = async (req,res,next) => {
 
 };
 
-exports.handleLogout = async (req,res, next) => {
+export const handleLogout = async (req,res) => {
   //on client, also delete the accessToken.
   const cookies = req.cookies;
 

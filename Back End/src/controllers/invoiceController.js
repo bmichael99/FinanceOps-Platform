@@ -1,7 +1,6 @@
-const db = require('../repositories/invoiceRepository')
+//import db from "../repositories/invoiceRepository";
 
-
-function createInvoice(req, res) {
+export function createInvoice(req, res) {
   console.log("hello");
   console.log(req.headers["content-type"])
   //console.log(req.files);
@@ -14,9 +13,4 @@ function createInvoice(req, res) {
 
   
   res.sendStatus(200);
-}
-
-
-module.exports = {
-  createInvoice,
 }

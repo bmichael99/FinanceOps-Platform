@@ -1,4 +1,6 @@
-exports.createInvoice = async ({
+import prisma from "./prisma";
+
+export const createInvoice = async ({
   fileName,
   projectName,
   invoiceType,
@@ -35,7 +37,6 @@ exports.createInvoice = async ({
   CustomerTaxId,
   PaymentTerm
  }) => {
-  try{
     const invoice = await prisma.invoice.create({
       data: {
         fileName,
@@ -77,12 +78,9 @@ exports.createInvoice = async ({
     });
 
     return invoice;
-  } catch(err){
-    throw err;
-  }
 }
 
-exports.createUnprocessedInvoice = async ({
+export const createUnprocessedInvoice = async ({
   fileName,
   projectName,
   invoiceType,
@@ -120,7 +118,6 @@ exports.createUnprocessedInvoice = async ({
   PaymentTerm,
   fieldConfidences = [],
  }) => {
-  try{
     const unprocessedInvoice = await prisma.unprocessedInvoice.create({
       data: {
         fileName,
@@ -168,13 +165,10 @@ exports.createUnprocessedInvoice = async ({
     });
 
     return unprocessedInvoice;
-  } catch(err){
-    throw err;
-  }
   
 }
 
-exports.updateInvoice = async ({
+export const updateInvoice = async ({
   fileName,
   projectName,
   invoiceType,
@@ -211,7 +205,7 @@ exports.updateInvoice = async ({
   CustomerTaxId,
   PaymentTerm
  }) => {
-  try{
+
     const invoice = await prisma.invoice.update({
       where: {fileName},
       data: {
@@ -254,13 +248,10 @@ exports.updateInvoice = async ({
     });
 
     return invoice;
-  } catch(err){
-    throw err;
-  }
   
 }
 
-exports.updateUnprocessedInvoice = async ({
+export const updateUnprocessedInvoice = async ({
   fileName,
   projectName,
   invoiceType,
@@ -297,7 +288,7 @@ exports.updateUnprocessedInvoice = async ({
   CustomerTaxId,
   PaymentTerm
  }) => {
-  try{
+
     const unprocessedInvoice = await prisma.unprocessedInvoice.update({
       where: {fileName},
       data: {
@@ -340,39 +331,30 @@ exports.updateUnprocessedInvoice = async ({
     });
 
     return unprocessedInvoice;
-  } catch(err){
-    throw err;
-  }
   
 }
 
-exports.createInvoiceTable = async ({id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}) => {
-  try{
+export const createInvoiceTable = async ({id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}) => {
+
     const invoiceTable = await prisma.invoiceTable.create({
     data: {id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}
   });
 
   return invoiceTable
-  } catch(err){
-    throw err;
-  }
 
 }
 
-exports.createUnprocessedInvoiceTable = async ({id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}) => {
-  try{
+export const createUnprocessedInvoiceTable = async ({id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}) => {
+
     const unprocessedInvoiceTable = await prisma.unprocessedInvoiceTable.create({
     data: {id, name, invoiceTableDataAsMarkdown, rowCount, columnCount, invoiceId}
   });
 
   return unprocessedInvoiceTable
-  } catch(err){
-    throw err;
-  }
 
 }
 
-exports.getAllInvoices = async() => {
+export const getAllInvoices = async() => {
   const invoices = await prisma.invoice.findMany({
     include: {
       invoiceTables: true,
@@ -382,13 +364,13 @@ exports.getAllInvoices = async() => {
   return invoices;
 }
 
-exports.getAllUnprocessedInvoices = async() => {
+export const getAllUnprocessedInvoices = async() => {
   const unprocessedInvoices = await prisma.unprocessedInvoice.findMany();
 
   return unprocessedInvoices;
 }
 
-exports.getAllUnprocessedInvoicesFileNames = async() => {
+export const getAllUnprocessedInvoicesFileNames = async() => {
   const unprocessedInvoices = await prisma.unprocessedInvoice.findMany({
     select: {
       fileName: true,
@@ -398,7 +380,7 @@ exports.getAllUnprocessedInvoicesFileNames = async() => {
   return unprocessedInvoices;
 }
 
-exports.getUnprocessedInvoiceByFileName = async(fileName) => {
+export const getUnprocessedInvoiceByFileName = async(fileName) => {
   const unprocessedInvoice = await prisma.unprocessedInvoice.findUnique({
     where:{
       fileName
@@ -408,7 +390,7 @@ exports.getUnprocessedInvoiceByFileName = async(fileName) => {
   return unprocessedInvoice;
 }
 
-exports.findInvoiceWithFileName = async(fileName) =>{
+export const findInvoiceWithFileName = async(fileName) =>{
   const invoice = await prisma.invoice.findUnique({
     where: {
       fileName,
@@ -418,7 +400,7 @@ exports.findInvoiceWithFileName = async(fileName) =>{
   return invoice;
 }
 
-exports.findUnprocessedInvoiceWithFileName = async(fileName) =>{
+export const findUnprocessedInvoiceWithFileName = async(fileName) =>{
   const unprocessedInvoice = await prisma.unprocessedInvoice.findUnique({
     where: {
       fileName,
@@ -428,40 +410,29 @@ exports.findUnprocessedInvoiceWithFileName = async(fileName) =>{
   return unprocessedInvoice;
 }
 
-exports.getAllInvoicesByProjectName = async(projectName) => {
-  try{
+export const getAllInvoicesByProjectName = async(projectName) => {
     const invoices = await prisma.invoice.findMany({
       where: {projectName}
     })
 
     return invoices;
-  } catch(err){
-    throw err
-  }
 }
 
-exports.getAllInvoicesIncludingTablesByProjectName = async(projectName) => {
-  try{
+export const getAllInvoicesIncludingTablesByProjectName = async(projectName) => {
     const invoices = await prisma.invoice.findMany({
       where: {projectName},
       include: {invoiceTables: true}
     })
 
     return invoices;
-  } catch(err){
-    throw err
-  }
 }
 
 
-exports.deleteUnprocessedInvoiceByFileName = async(fileName) => {
-  try{
+export const deleteUnprocessedInvoiceByFileName = async(fileName) => {
+
     const unprocessedInvoice = await prisma.unprocessedInvoice.delete({
       where: {fileName}
     })
 
     return unprocessedInvoice;
-  } catch(err){
-    throw err
-  }
 }

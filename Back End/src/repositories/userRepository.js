@@ -1,9 +1,7 @@
-const prisma = require("./prisma");
-
+import prisma from "./prisma";
 
 //samples
-exports.createUser = async (firstName,username,password) => {
-  try{
+export const createUser = async (firstName,username,password) => {
     return await prisma.user.create({
       data: {
         firstName: firstName,
@@ -11,12 +9,9 @@ exports.createUser = async (firstName,username,password) => {
         password: password,
       }
     });
-  } catch(err){
-    throw err;
-  }
 }
 
-exports.getUserByUsername = async (username) => {
+export const getUserByUsername = async (username) => {
   const user = await prisma.user.findUnique({
     where: {username: username}
   });
@@ -24,7 +19,7 @@ exports.getUserByUsername = async (username) => {
   return user;
 }
 
-exports.getUserById = async (userId) => {
+export const getUserById = async (userId) => {
   const user = prisma.user.findUnique({
     where: {id: userId}
   });
@@ -32,7 +27,7 @@ exports.getUserById = async (userId) => {
   return user;
 }
 
-exports.getUserByRefreshToken = async (token) => {
+export const getUserByRefreshToken = async (token) => {
   const user = prisma.user.findFirst({
     where: {refreshToken: token}
   });
@@ -40,7 +35,7 @@ exports.getUserByRefreshToken = async (token) => {
   return user;
 }
 
-exports.updateUserRefreshToken = async (token, userId) => {
+export const updateUserRefreshToken = async (token, userId) => {
   const user = await prisma.user.update({
     where: {id: userId},
     data: {refreshToken: token}
@@ -49,7 +44,7 @@ exports.updateUserRefreshToken = async (token, userId) => {
   return user;
 }
 
-exports.updateUserDeleteRefreshToken = async (userId) => {
+export const updateUserDeleteRefreshToken = async (userId) => {
   const user = await prisma.user.update({
     where: {id: userId},
     data: {refreshToken: null}

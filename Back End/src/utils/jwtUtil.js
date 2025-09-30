@@ -1,9 +1,9 @@
-const jsonwebtoken = require("jsonwebtoken");
-const fs = require("fs");
-const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
+import fs from "fs";
+import jsonwebtoken from "jsonwebtoken";
+//const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
 const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
 
-function issueJWT(user) {
+export function issueJWT(user) {
   const user_id = user.id;
 
   const refreshExpiresIn = "30d";
@@ -30,9 +30,4 @@ function issueJWT(user) {
     refreshExpires: refreshExpiresIn,
     accessExpires: accessExpiresIn
   };
-}
-
-
-module.exports = {
-  issueJWT,
 }

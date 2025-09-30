@@ -1,4 +1,4 @@
-function tablesToMarkdown (tables = []) {
+export function tablesToMarkdown (tables = []) {
   if (!Array.isArray(tables) || tables.length === 0) return [];
 
   /* --- helpers --- */
@@ -28,5 +28,3 @@ function tablesToMarkdown (tables = []) {
   /* --- build and return array of Markdown tables --- */
   return tables.map(tableToMatrix).map(matrixToMarkdown);
 }
-
-module.exports = { tablesToMarkdown };

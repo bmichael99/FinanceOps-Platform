@@ -1,11 +1,10 @@
-const jwt = require("jsonwebtoken");
-const fs = require("fs");
-const { verify } = require("crypto");
 const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
-const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
-const db = require("../repositories/userRepository");
+//const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
+import * as db from "../repositories/userRepository";
+import fs from "fs";
+import jwt from "jsonwebtoken";
 
-const verifyJWT = (req,res,next) => {
+export const verifyJWT = (req,res,next) => {
   const authHeader = req.headers['authorization'];
   if(!authHeader){
     return res.sendStatus(401); //unauthorized
@@ -29,8 +28,4 @@ const verifyJWT = (req,res,next) => {
     }
     next();
   });
-}
-
-module.exports = {
-  verifyJWT,
 }

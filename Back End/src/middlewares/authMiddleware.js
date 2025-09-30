@@ -1,4 +1,4 @@
-exports.isAuth = (req,res,next) => {
+export const isAuth = (req,res,next) => {
   if (req.isAuthenticated()){
     next();
   } else {
@@ -6,6 +6,6 @@ exports.isAuth = (req,res,next) => {
   }
 }
 
-exports.isAdmin = (req,res,next) => {
+// exports.isAdmin = (req,res,next) => {
   
-}
+// }

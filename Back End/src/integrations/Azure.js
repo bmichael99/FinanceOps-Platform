@@ -1,12 +1,13 @@
-const { DocumentAnalysisClient, AzureKeyCredential } = require("@azure/ai-form-recognizer");
-const fs = require("fs");
-const path = require("path");
-require('dotenv').config({ path: '../.env' });
+import path from "path";
+import fs from "fs";
+import { DocumentAnalysisClient, AzureKeyCredential } from "@azure/ai-form-recognizer";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const endpoint = process.env.AZURE_ENDPOINT_ADANTA;
 const apiKey = process.env.AZURE_API_KEY_ADANTA;
 
- async function getDocumentData(invoice_path){
+export async function getDocumentData(invoice_path){
 
   try{
     const client = new DocumentAnalysisClient(endpoint, new AzureKeyCredential(apiKey));
@@ -31,8 +32,3 @@ const apiKey = process.env.AZURE_API_KEY_ADANTA;
 
   
 }
-
-module.exports = {
-  getDocumentData
-}
-

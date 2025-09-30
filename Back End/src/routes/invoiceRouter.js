@@ -1,14 +1,11 @@
-const { Router } = require("express");
-const invoiceController = require("../controllers/invoiceController");
-const invoiceRouter = Router();
-const passport = require('passport');
-const multer  = require('multer')
+import {Router} from "express";
+import * as invoiceController from "../controllers/invoiceController";
+import passport from "passport";
+import multer from "multer";
 const upload = multer({ dest: 'uploads/' })
-
-
+const invoiceRouter = Router();
 
 invoiceRouter.post("/invoices", upload.array('files'), passport.authenticate('jwt', {session: false}), invoiceController.createInvoice);
 
-module.exports = invoiceRouter;
-
+export default invoiceRouter;
 
