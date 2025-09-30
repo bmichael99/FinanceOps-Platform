@@ -7,6 +7,7 @@ import cors from "cors";
 import dotenv from 'dotenv';
 import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
+import { MulterError } from "multer";
 dotenv.config();
 
 
@@ -102,9 +103,12 @@ app.use(invoiceRouter);
 app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
   if (err instanceof PrismaClientKnownRequestError) {
     if(err.code === 'P2002')
-      return res.status(409).json({ message: 'Username already exists:' + err.message});
+      return res.status(409).json({message: 'Prisma error. Unique id already exists:' + err.message});
 
-    return res.status(500).json({ message: 'Prisma error code' + err.code + ": " + err.message});
+    return res.status(500).json({error: 'Prisma error.', code: err.code, message: err.message});
+  }
+  else if (err instanceof MulterError){
+    return res.status(400).json({error: 'Multer error, invalid upload.', code: err.code, message: err.message});
   }
 
   console.error(err); // Log unexpected errors
