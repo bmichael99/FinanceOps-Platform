@@ -2,17 +2,20 @@ import prisma from "./repositories/prisma";
 import passport from "passport";
 import fs from "fs";
 import cookieParser from "cookie-parser";
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithoutRequest } from 'passport-jwt';
 import cors from "cors";
 import dotenv from 'dotenv';
+import type {Request, Response, NextFunction} from "express";
+import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 dotenv.config();
 
 
 
+
 //imports the express framework
-const express = require("express");
+import express from "express";
 //node module for handling paths
-const path = require("path");
+import path from "path";
 //initalizes the express application
 const app = express();
 
@@ -52,7 +55,7 @@ app.use(passport.initialize());
 const pathToKey = path.join(__dirname, 'id_rsa_pub.pem');
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
-const options = {
+const options : StrategyOptionsWithoutRequest = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: PUB_KEY,
   algorithms: ['RS256']
@@ -61,7 +64,7 @@ const options = {
 const strategy = new JwtStrategy(options, async (payload,done) => {
     try {
       const user = await prisma.user.findUnique({
-        where: {id: payload.sub}
+        where: {id: Number(payload.sub)}
       });
       console.log("payload:",payload);
       if (!user) {
@@ -96,9 +99,12 @@ app.use(invoiceRouter);
  * -------------------- ERROR HANDLING --------------------
  */
 
-app.use((err, req, res) => {
-  if (err.code === 'P2002') {
-    return res.status(409).json({ message: 'Username already exists' });
+app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
+  if (err instanceof PrismaClientKnownRequestError) {
+    if(err.code === 'P2002')
+      return res.status(409).json({ message: 'Username already exists:' + err.message});
+
+    return res.status(500).json({ message: 'Prisma error code' + err.code + ": " + err.message});
   }
 
   console.error(err); // Log unexpected errors

@@ -1,13 +1,15 @@
-import * as db from "../repositories/userRepository"
+import * as db from "../repositories/userRepository.js"
 import bcrypt from "bcryptjs"
-import * as utils from "../utils/jwtUtil";
+import * as utils from "../utils/jwtUtil.js";
 import dotenv from 'dotenv';
+import { Request, Response, NextFunction } from 'express';
 dotenv.config();
 
-export const registerUserPost = async (req,res, next) => {
+export const registerUserPost = async (req : Request, res : Response, next : NextFunction) => {
   try{
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const user = await db.createUser(req.body.firstName, req.body.username,hashedPassword);
+    
+    const password : string = await bcrypt.hash(req.body.password, 10);
+    const user = await db.createUser({firstName : req.body.firstName, username : req.body.username, password});
     
     const jwt = utils.issueJWT(user);
     //const hashedRefreshToken = await bcrypt.hash(jwt.refreshToken, 10);
@@ -16,7 +18,7 @@ export const registerUserPost = async (req,res, next) => {
     await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
     //send access token to client
-    res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: 'None', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
+    res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: "none", secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
     res.status(200).json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires});
   }
   catch(err){
@@ -24,11 +26,11 @@ export const registerUserPost = async (req,res, next) => {
   }
 };
 
-export const logInUserPost = async (req,res,next) => {
+export const logInUserPost = async (req : Request, res : Response, next : NextFunction) => {
   try{
     const user = await db.getUserByUsername(req.body.username);
     if(!user){
-      res.status(401).json({success:false, msg: "Could not find user"});
+      return res.status(401).json({success:false, msg: "Could not find user"});
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);
@@ -43,7 +45,7 @@ export const logInUserPost = async (req,res,next) => {
       await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
       //send access token to client
-      res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: 'None', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
+      res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: 'none', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
       res.status(200).json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires});
     
     }
@@ -53,7 +55,7 @@ export const logInUserPost = async (req,res,next) => {
 
 };
 
-export const handleLogout = async (req,res) => {
+export const handleLogout = async (req : Request, res : Response) => {
   //on client, also delete the accessToken.
   const cookies = req.cookies;
 
@@ -67,13 +69,13 @@ export const handleLogout = async (req,res) => {
   try{
     const user = await db.getUserByRefreshToken(refreshToken);
     if(!user){
-      res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', secure: true});
-      res.status(204).json({success:true, msg: "no content, cookie cleared."});
+      res.clearCookie('jwt', {httpOnly: true, sameSite: 'none', secure: true});
+      return res.status(204).json({success:true, msg: "no content, cookie cleared."});
     }
 
     //delete refreshtoken in db
     await db.updateUserDeleteRefreshToken(user.id);
-    res.clearCookie('jwt', {httpOnly: true, sameSite: 'None', secure: true});
+    res.clearCookie('jwt', {httpOnly: true, sameSite: 'none', secure: true});
     res.sendStatus(204);
   } catch(err){
     console.log(err);

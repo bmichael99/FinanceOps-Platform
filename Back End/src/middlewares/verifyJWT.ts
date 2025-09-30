@@ -3,8 +3,9 @@ const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
 import * as db from "../repositories/userRepository";
 import fs from "fs";
 import jwt from "jsonwebtoken";
+import {Request, Response, NextFunction} from "express";
 
-export const verifyJWT = (req,res,next) => {
+export const verifyJWT = (req : Request, res : Response, next : NextFunction) => {
   const authHeader = req.headers['authorization'];
   if(!authHeader){
     return res.sendStatus(401); //unauthorized
@@ -14,17 +15,17 @@ export const verifyJWT = (req,res,next) => {
   const token = authHeader.split(' ')[1];
 
   jwt.verify(token, PUB_KEY, { algorithms: ["RS256"] }, (err, payload) => {
-    if (err.name === "TokenExpiredError") {
+    if (err?.name === "TokenExpiredError") {
       res.sendStatus(403);
     }
 
-    if (err.name === "JsonWebTokenError") {
+    if (err?.name === "JsonWebTokenError") {
       res.sendStatus(403);
     }
 
     if (err === null) {
       console.log("Your JWT was successfully validated!");
-      req.user = db.getUserById(payload.sub);
+      req.user = db.getUserById(Number(payload?.sub));
     }
     next();
   });

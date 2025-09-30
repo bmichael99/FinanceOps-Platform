@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.12.0",
     "@quixo3/prisma-session-store": "^3.1.13",
+    "@types/cookie-parser": "^1.4.9",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "connect-pg-simple": "^10.0.0",
@@ -33,11 +34,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@tsconfig/node22": "^22.0.2",
     "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.6.0",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",

@@ -1,7 +1,13 @@
 import prisma from "./prisma";
 
+interface User {
+  firstName : string,
+  username : string,
+  password : string,
+}
+
 //samples
-export const createUser = async (firstName,username,password) => {
+export const createUser = async ({firstName,username,password} : User) => {
     return await prisma.user.create({
       data: {
         firstName: firstName,
@@ -11,7 +17,7 @@ export const createUser = async (firstName,username,password) => {
     });
 }
 
-export const getUserByUsername = async (username) => {
+export const getUserByUsername = async (username : string) => {
   const user = await prisma.user.findUnique({
     where: {username: username}
   });
@@ -19,7 +25,7 @@ export const getUserByUsername = async (username) => {
   return user;
 }
 
-export const getUserById = async (userId) => {
+export const getUserById = async (userId : number) => {
   const user = prisma.user.findUnique({
     where: {id: userId}
   });
@@ -27,7 +33,7 @@ export const getUserById = async (userId) => {
   return user;
 }
 
-export const getUserByRefreshToken = async (token) => {
+export const getUserByRefreshToken = async (token : string) => {
   const user = prisma.user.findFirst({
     where: {refreshToken: token}
   });
@@ -35,7 +41,7 @@ export const getUserByRefreshToken = async (token) => {
   return user;
 }
 
-export const updateUserRefreshToken = async (token, userId) => {
+export const updateUserRefreshToken = async (token : string, userId : number) => {
   const user = await prisma.user.update({
     where: {id: userId},
     data: {refreshToken: token}
@@ -44,7 +50,7 @@ export const updateUserRefreshToken = async (token, userId) => {
   return user;
 }
 
-export const updateUserDeleteRefreshToken = async (userId) => {
+export const updateUserDeleteRefreshToken = async (userId : number) => {
   const user = await prisma.user.update({
     where: {id: userId},
     data: {refreshToken: null}

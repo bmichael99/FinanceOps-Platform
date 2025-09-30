@@ -1,9 +1,10 @@
 import fs from "fs";
 import jsonwebtoken from "jsonwebtoken";
+import type {User} from '../generated/prisma';
 //const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
 const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
 
-export function issueJWT(user) {
+export function issueJWT(user : User) {
   const user_id = user.id;
 
   const refreshExpiresIn = "30d";
