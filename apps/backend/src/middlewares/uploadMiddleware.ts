@@ -31,6 +31,6 @@ const limits : multer.Options["limits"] = {
 
 const upload = multer({fileFilter: fileFilter , storage: storage, limits: limits})
 
-const uploadMiddleware = upload.array('files',5)
+const uploadMiddleware = upload.array('files', 5)
 
 export default uploadMiddleware;
