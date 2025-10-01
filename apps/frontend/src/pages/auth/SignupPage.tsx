@@ -14,23 +14,13 @@ import { Button } from '@/components/ui/button';
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import {userSchema, type userType} from "@finance-platform/schemas";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function SignupPage() {
   const navigate = useNavigate();
 
-  const FormSchema = z.object({
-    firstName: z.string().min(2, {
-      error: "Firstname must be at least 2 characters."
-    }),
-    username: z.string().min(4, {
-      error: "username must be at least 4 characters."
-    }),
-    password: z.string().min(7, {
-      error: "password must be at least 7 characters."
-    }),
-  })
 
   const {register, handleSubmit, formState:{errors}} = useForm(
     {defaultValues: 
@@ -38,9 +28,9 @@ function SignupPage() {
         username: "",
         password: "",
       },
-    resolver: zodResolver(FormSchema)});
+    resolver: zodResolver(userSchema)});
 
-  const  myHandleSubmit = async (data: z.infer<typeof FormSchema>) =>{
+  const  myHandleSubmit = async (data: userType) =>{
     const response = await fetch(API_URL + '/auth/register', {
       method: 'POST',
       headers: {

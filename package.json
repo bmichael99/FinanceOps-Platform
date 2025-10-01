@@ -1,0 +1,26 @@
+{
+  "name": "financeops-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bmichael99/FinanceOps-Platform.git"
+  },
+  "author": "Michael Brandmeyer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bmichael99/FinanceOps-Platform/issues"
+  },
+  "homepage": "https://github.com/bmichael99/FinanceOps-Platform#readme",
+  "private": true,
+  "workspaces": [
+    "packages/schemas",
+    "apps/backend",
+    "apps/frontend"
+  ],
+  "dependencies": {
+    "zod": "^4.1.11"
+  }
+}
