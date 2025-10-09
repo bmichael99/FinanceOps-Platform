@@ -14,16 +14,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Invoice {
-  id                            Int      @id @default(autoincrement())
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @updatedAt
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  SAVING
+  COMPLETED
+  FAILED
+}
 
-  fileName                      String    @unique
+model Invoice {
+  id                            Int               @id @default(autoincrement())
+  createdAt                     DateTime          @default(now())
+  updatedAt                     DateTime          @updatedAt
+
+  fileName                      String            @unique
+  originalFileName              String
+  mimeType                      String
+  filePath                      String
+  currentProcessingStatus       ProcessingStatus  @default(PENDING)
+
   projectName                   String?
   invoiceType                   String?
   paymentStatus                 String?
-  fileIdSharepoint              String?
 
   CustomerName                  String?
   CustomerId                    String?
@@ -87,10 +99,14 @@ model UnprocessedInvoice {
   updatedAt                     DateTime @updatedAt
 
   fileName                      String    @unique
+  originalFileName              String
+  mimeType                      String
+  filePath                      String
+  currentProcessingStatus       String
+
   projectName                   String?
   invoiceType                   String?
   paymentStatus                 String?
-  fileIdSharepoint              String?
 
   CustomerName                  String?
   CustomerId                    String?
@@ -161,11 +177,17 @@ model UnprocessedInvoiceTable {
   invoiceId                   Int   // Foreign key to Invoice, if applicable
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User{
   id           Int        @id @default(autoincrement())
   firstName    String 
   username     String     @unique
   password     String
+  role         Role       @default(USER)
   createdAt    DateTime   @default(now())
   refreshToken String?
 }
