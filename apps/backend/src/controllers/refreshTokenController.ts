@@ -27,9 +27,10 @@ export const handleRefreshToken = async (req : Request,res : Response) => {
     }
 
     jsonwebtoken.verify(refreshToken, PUB_KEY, { algorithms: ["RS256"] }, (err, payload) => {
-      //JWT 'sub' is always a string, so we need to cast one to a string/number to compare
-      if (err || !payload || user.id.toString() !== payload.sub) {
-          res.sendStatus(403);
+      //JWT 'sub' is always a string, so cast payload.sub to Number to compare. to_string on id didn't work some reason
+      if (err || !payload || user.id !== Number(payload.sub)) {
+          console.log("sub or payload issue");
+          return res.sendStatus(403);
         }
 
         const newPayload = {
