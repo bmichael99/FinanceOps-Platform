@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import useFetchPrivate from '@/hooks/useFetchPrivate';
-import { CloudUpload, FileText, FileTextIcon, Upload, X } from 'lucide-react';
+import { CloudUpload, FileText, FileTextIcon, FileType, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react'
 import * as z from "zod";
 
@@ -19,7 +19,7 @@ function UploadInvoicePage() {
     file: File,
   }
 
-  const [error, setError] = useState<any>();
+  const [errors, setErrors] = useState<string[] | null>();
   const [files, setFiles] = useState<fileType[]>([]);
   const [dragOver,setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -30,7 +30,7 @@ function UploadInvoicePage() {
       id: z.string(),
       file: z.file()
             .max(4_000_000, {error: "Files must be smaller than 4MB."})
-            .mime(["application/pdf"], {error: "Files must be in .pdf format."}),
+            .mime(["application/pdf"], {error: "Files must be in .pdf format."})
     })
   )
   .min(1, { error: "Must upload at least 1 file." })
@@ -44,26 +44,37 @@ function UploadInvoicePage() {
       formData.append("files", files[i].file);
     }
 
-
     const response = await fetchPrivate("/invoices","POST", formData);
 
     if (response.ok) {
       console.log("Upload successful");
-      console.log(response);
+      console.log(await response.json());
     } else {
       console.error("Upload failed");
     }
-    
+  }
+
+  function checkDuplicateFiles(newFiles: fileType[]) : fileType[]{
+    files.forEach((file) => {
+      newFiles = newFiles.filter((newFile) => {
+        //we want users to be able to upload invoices with the same file name from different folders, in the case of generic names being used. This improves UX and prevents user friction. We add a system to notify the user when there are duplicate invoice ID's, and give options for the user to resolve them.
+        return (newFile.file.name != file.file.name || newFile.file.size != file.file.size) 
+      })
+    })
+    return newFiles;
   }
 
   function validateFiles(newFiles: fileType[]) : boolean{
     const parse = fileSchema.safeParse(newFiles);
     if(!parse.success){
-      const errors : any[] = JSON.parse(parse.error.message);
-      setError(errors.map((error) => error.message));
+      const uniqueIssues : string[] = Array.from(
+        new Set(JSON.parse(parse.error.message).map((error : z.ZodError) => error.message))
+      )
+      console.log(uniqueIssues);
+      setErrors(uniqueIssues);
       return false;
     }
-    setError(null);
+    setErrors(null);
     return true;
   }
 
@@ -76,12 +87,16 @@ function UploadInvoicePage() {
       //convert FileList (e.dataTransfer.files) into an array of Files and then use map to 
       //convert each file object into an object that contains key value pairs of id and file.
       //append these new objects to our already existing array of objects currFiles
-      const newFiles = Array.from(e.dataTransfer.files).map(file => ({
+      let newFiles : fileType[] = Array.from(e.dataTransfer.files).map(file => ({
         id: crypto.randomUUID(),
         file: file,
       }));
 
-      if(!validateFiles(newFiles)){
+      newFiles = checkDuplicateFiles(newFiles);
+
+      const allFiles = [...files, ...newFiles];
+
+      if(!validateFiles(allFiles)){
         e.dataTransfer.clearData();
         return;
       }
@@ -93,12 +108,17 @@ function UploadInvoicePage() {
 
   const handleClickToBrowse = (e : React.ChangeEvent<HTMLInputElement>) => {
     if(e.target.files && e.target.files.length > 0){
-      const newFiles = Array.from(e.target.files).map(file => ({
+      let newFiles : fileType[] = Array.from(e.target.files).map(file => ({
           id: crypto.randomUUID(),
           file: file,
       }));
 
-      if(!validateFiles(newFiles)){
+      newFiles = checkDuplicateFiles(newFiles);
+
+      const allFiles = [...files, ...newFiles];
+
+      //need to validate all files, not just new, to make sure <= 5 files.
+      if(!validateFiles(allFiles)){
         return;
       }
 
@@ -144,7 +164,7 @@ function UploadInvoicePage() {
           <Button variant={'outline'} onClick={(e) => handleDeleteFileItem(file.id,e)}><X/></Button>
           </div>
           )}
-          {error && <p className="text-red-600">{error}</p>}
+          {errors && errors.map((currError : string, index : Number) => <p key={index.toString()} className="text-red-600">{currError}</p>)}
         </CardContent>
       </Card>
 
