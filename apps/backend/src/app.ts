@@ -8,9 +8,9 @@ import dotenv from 'dotenv';
 import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { MulterError } from "multer";
-dotenv.config();
+dotenv.config({path: '../.env'});
 
-
+//console.log(process.env.PING);
 
 
 //imports the express framework
@@ -102,15 +102,18 @@ app.use(invoiceRouter);
 
 app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
   if (err instanceof PrismaClientKnownRequestError) {
-    if(err.code === 'P2002')
+    if(err.code === 'P2002'){
+      
       return res.status(409).json({message: 'Prisma error. Unique id already exists:' + err.message});
+    }
 
+    console.error(err);
     return res.status(500).json({error: 'Prisma error.', code: err.code, message: err.message});
   }
   else if (err instanceof MulterError){
     return res.status(400).json({error: 'Multer error, invalid upload.', code: err.code, message: err.message});
   }
-
+  
   console.error(err); // Log unexpected errors
   res.status(500).json({ message: 'Something went wrong' });
 });
