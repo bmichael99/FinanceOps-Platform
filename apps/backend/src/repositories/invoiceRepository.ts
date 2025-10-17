@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import prisma from "./prisma";
 import {InvoiceTable} from "../generated/prisma"
 import {UnprocessedInvoiceTable} from "../generated/prisma"
@@ -14,7 +16,7 @@ export const createInvoice = async (invoiceData : Prisma.InvoiceCreateInput) => 
     return invoice;
 }
 
-export const createUnprocessedInvoice = async (unprocessedInvoiceData : Prisma.UnprocessedInvoiceCreateWithoutInvoiceTablesInput) => {
+export const createUnprocessedInvoice = async (unprocessedInvoiceData : Prisma.UnprocessedInvoiceCreateInput) => {
     const unprocessedInvoice = await prisma.unprocessedInvoice.create({
       data: {
         ...unprocessedInvoiceData,
@@ -22,10 +24,9 @@ export const createUnprocessedInvoice = async (unprocessedInvoiceData : Prisma.U
     });
 
     return unprocessedInvoice;
-  
 }
 
-export const updateInvoice = async ({fileName, ...invoiceData} : Prisma.InvoiceCreateInput) => {
+export const updateInvoice = async (fileName : string, invoiceData : Prisma.InvoiceUpdateInput) => {
 
     const invoice = await prisma.invoice.update({
       where: {fileName},
@@ -36,7 +37,7 @@ export const updateInvoice = async ({fileName, ...invoiceData} : Prisma.InvoiceC
   
 }
 
-export const updateUnprocessedInvoice = async ({fileName, ...unprocessedInvoiceData} : Prisma.UnprocessedInvoiceCreateWithoutInvoiceTablesInput) => {
+export const updateUnprocessedInvoice = async (fileName : string, unprocessedInvoiceData : Prisma.UnprocessedInvoiceUpdateInput) => {
 
     const unprocessedInvoice = await prisma.unprocessedInvoice.update({
       where: {fileName},
