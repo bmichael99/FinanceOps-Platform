@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import path from "path";
-import * as db from "../services/prismaQueries";
+import * as db from "../repositories/invoiceRepository";
 import {tablesToMarkdown} from "./tablesToMarkdown.js";
 import * as azure from "./Azure.js";
 
@@ -69,56 +69,69 @@ function mergeTables(tables){
     return tables;
 }
 
-
-export async function getDocumentData(fileName, projectName, invoiceType, paymentStatus, fileId){
+//export async function processDocumentData(fileName, projectName, invoiceType, paymentStatus, fileId){
+export async function processDocumentData(fileName){
   try{
-    const invoicePath = path.resolve(__dirname, "../invoices",fileName);
+    const invoicePath = path.resolve(__dirname, "../../uploads",fileName);
     const rawData = await azure.getDocumentData(invoicePath);
+    if(!rawData){
+      throw new Error("Unable to extract document data with azure");
+    }
 
     let fieldsData = {};
     //let invoiceTotalConfidence = 1;
-    let fieldConfidences = [];
+    // let fieldConfidences = [];
     const documentFields = rawData.documents?.[0]?.fields;
 
     if(documentFields){
       for (const [fieldName, fieldData] of Object.entries(documentFields)) {
         const content = fieldData?.content?.replace(/\n/g, ' ').trim();
 
-        if(fieldName == "InvoiceTotal"){
-          //invoiceTotalConfidence = fieldData?.confidence;
-        }
+        // if(fieldName == "InvoiceTotal"){
+        //   invoiceTotalConfidence = fieldData?.confidence;
+        // }
 
-        if(fieldData && fieldData.confidence)
-          fieldConfidences.push({fieldName: fieldName, confidence: fieldData?.confidence});
+        // if(fieldData && fieldData.confidence)
+        //   fieldConfidences.push({fieldName: fieldName, confidence: fieldData?.confidence});
         
         fieldsData[fieldName] = content;
       }
     }
-    fieldsData['fileName'] = fileName;
-    fieldsData['projectName'] = projectName;
-    fieldsData['invoiceType'] = invoiceType;
-    fieldsData['paymentStatus'] = paymentStatus;
-    fieldsData['fileIdSharepoint'] = fileId;
+    //fieldsData['fileName'] = fileName;
+    // fieldsData['projectName'] = projectName;
+    // fieldsData['invoiceType'] = invoiceType;
+    // fieldsData['paymentStatus'] = paymentStatus;
+
+    console.log(fileName, " processing success.");
+
+    return(fieldsData);
+    //fieldsData['fileIdSharepoint'] = fileId; //for sharepoint
 
     //TODO: Change this to update, we create the record when file is first uploaded and keep track of status,
     //update status here as well
-    const storeUnprocessedInvoice = await db.createUnprocessedInvoice({...fieldsData, fieldConfidences});
+    //const storeUnprocessedInvoice = await db.createUnprocessedInvoice({...fieldsData, fieldConfidences});
+
+    //const storeUnprocessedInvoice = await db.updateUnprocessedInvoice({currentProcessingStatus: "SAVING" , ...fieldsData});
+    //if(!storeUnprocessedInvoice){
+      //throw new Error("Unable to update unprocessed invoice");
+    //}
 
     //convert tables from invoice to markdown then store in db
-    let tables = mergeTables(rawData.tables);
-    const markdownTables = tablesToMarkdown(tables);
-    for(let table of markdownTables){
-      //console.log(table);
-      await db.createUnprocessedInvoiceTable({invoiceTableDataAsMarkdown: table, invoiceId: storeUnprocessedInvoice.id});
-    }
+    //commenting out this code for now, it's used for processing table data if wanted in the future:
 
-    console.log(fileName, " processing success.");
+    // let tables = mergeTables(rawData.tables);
+    // const markdownTables = tablesToMarkdown(tables);
+    // for(let table of markdownTables){
+    //   //console.log(table);
+    //   await db.createUnprocessedInvoiceTable({invoiceTableDataAsMarkdown: table, invoiceId: storeUnprocessedInvoice.id});
+    // }
+
+    
   } catch(err){
-
     console.error(err);
     console.log(fileName, " processing failed.");
+    throw new Error("Unable to extract document data with azure");
   }
-
 }
 
 // async function retrieveAllInvoices(){
