@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch ./dist/app.js"
+    "dev": "concurrently \"node --watch ./dist/app.js\" \"tsc --watch\" \"node --require dotenv/config --watch dist/workers/fileProcessor.js\"",
+    "worker": "node --require dotenv/config --watch dist/workers/fileProcessor.js"
   },
   "prisma": {
     "schema": "./src/prisma/schema.prisma"
@@ -14,6 +15,9 @@
   "author": "Michael Brandmeyer",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.908.0",
+    "@aws-sdk/s3-request-presigner": "^3.908.0",
+    "@azure/ai-form-recognizer": "^5.1.0",
     "@finance-platform/schemas": "*",
     "@prisma/client": "^6.12.0",
     "@quixo3/prisma-session-store": "^3.1.13",
@@ -51,6 +55,7 @@
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@typescript-eslint/parser": "^8.45.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "prisma": "^6.12.0",
