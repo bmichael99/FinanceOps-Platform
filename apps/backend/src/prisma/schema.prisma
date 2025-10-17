@@ -15,11 +15,11 @@ datasource db {
 }
 
 enum ProcessingStatus {
-  PENDING
-  PROCESSING
-  SAVING
-  COMPLETED
-  FAILED
+  PENDING // Waiting in queue, file already downloaded and saved to back-end server.
+  PROCESSING // File popped from queue, begin processing.
+  SAVING //File being sent to s3.
+  COMPLETED //File saved to s3 and data can now be accessed by the user. Move from UnprocessedInvoice -> Invoice
+  FAILED //File failed during one of these steps.
 }
 
 model Invoice {
@@ -77,7 +77,9 @@ model Invoice {
   CustomerTaxId                 String?
   PaymentTerm                   String?
 
-
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  
   invoiceTables InvoiceTable[]
 }
 
@@ -150,6 +152,9 @@ model UnprocessedInvoice {
 
   fieldConfidences              UnprocessedInvoiceFieldConfidence[]
   invoiceTables                 UnprocessedInvoiceTable[]
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
 }
 
 model UnprocessedInvoiceFieldConfidence {
@@ -190,4 +195,7 @@ model User{
   role         Role       @default(USER)
   createdAt    DateTime   @default(now())
   refreshToken String?
+
+  unprocessedInvoices UnprocessedInvoice[]
+  invoices            Invoice[]
 }
