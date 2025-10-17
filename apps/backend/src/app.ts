@@ -1,16 +1,20 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import prisma from "./repositories/prisma";
 import passport from "passport";
 import fs from "fs";
 import cookieParser from "cookie-parser";
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithoutRequest } from 'passport-jwt';
 import cors from "cors";
-import dotenv from 'dotenv';
 import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { MulterError } from "multer";
-dotenv.config({path: '../.env'});
 
-//console.log(process.env.PING);
+
+
+
+
+console.log(process.env.PING);
 
 
 //imports the express framework
