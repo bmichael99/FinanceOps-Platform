@@ -12,6 +12,7 @@ import useFetchPrivate from '@/hooks/useFetchPrivate';
 import { CloudUpload, FileText, FileTextIcon, FileType, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react'
 import * as z from "zod";
+import FileUploadStatus from './components/FileUploadStatus';
 
 function UploadInvoicePage() {
   type fileType = {
@@ -176,7 +177,7 @@ function UploadInvoicePage() {
           <CardDescription>View status of recent uploads. (24hrs)</CardDescription>
         </CardHeader>
         <CardContent>
-          
+          <FileUploadStatus />
         </CardContent>
       </Card>
 
