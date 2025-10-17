@@ -4,8 +4,8 @@ import { DocumentAnalysisClient, AzureKeyCredential } from "@azure/ai-form-recog
 import dotenv from 'dotenv';
 dotenv.config();
 
-const endpoint = process.env.AZURE_ENDPOINT_ADANTA;
-const apiKey = process.env.AZURE_API_KEY_ADANTA;
+const endpoint = process.env.AZURE_ENDPOINT;
+const apiKey = process.env.AZURE_API_KEY;
 
 export async function getDocumentData(invoice_path){
 
