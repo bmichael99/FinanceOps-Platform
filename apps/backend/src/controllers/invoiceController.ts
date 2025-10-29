@@ -1,7 +1,6 @@
 import * as db from "../repositories/invoiceRepository";
 import {NextFunction, Request, Response} from "express";
 import {Queue} from 'bullmq';
-import { type User } from '../generated/prisma'
 
 export interface fileProcessingData {
     fileName: string,
