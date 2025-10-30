@@ -10,13 +10,6 @@ import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { MulterError } from "multer";
 
-
-
-
-
-console.log(process.env.PING);
-
-
 //imports the express framework
 import express from "express";
 //node module for handling paths
