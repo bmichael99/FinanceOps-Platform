@@ -12,20 +12,25 @@ import useFetchPrivate from '@/hooks/useFetchPrivate';
 import { CloudUpload, FileText, FileTextIcon, FileType, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react'
 import * as z from "zod";
-import FileUploadStatus from './components/FileUploadStatus';
+import UploadStatusCard from './components/UploadStatusCard';
+import { type FileResponseType } from '@finance-platform/types';
+
+type FileType = {
+  id: string,
+  file: File,
+}
+
+export type UploadedFileType = Record<string, FileResponseType>;
 
 function UploadInvoicePage() {
-  type fileType = {
-    id: string,
-    file: File,
-  }
-
   const [errors, setErrors] = useState<string[] | null>();
-  const [files, setFiles] = useState<fileType[]>([]);
+  const [files, setFiles] = useState<FileType[]>([]);
+  // const [uploadedFiles, setUploadedFiles] = useState<FileResponseType[]>([]);
+  //create hashmap of <fileName, FileResponseType>
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileType>({});
   const [dragOver,setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fetchPrivate = useFetchPrivate();
-  
   const fileSchema = z.array(
     z.object({
       id: z.string(),
@@ -37,25 +42,44 @@ function UploadInvoicePage() {
   .min(1, { error: "Must upload at least 1 file." })
   .max(5, { error: "Cannot upload more than 5 files at once." });
 
-  const upload = async () => {
+  async function upload() {
     const formData = new FormData();
-
     for(let i = 0; i < files.length; i++){
       console.log(files[i].file.name);
       formData.append("files", files[i].file);
+      formData.append("clientIds", files[i].id);
     }
 
-    const response = await fetchPrivate("/invoices","POST", formData);
+    //Optimistic loading for instantly telling the user that their files are uploading.
+    const optimisticData = Object.fromEntries(
+      files.map((file) => {
+        const mockData: FileResponseType = {clientID: file.id, fileName: file.file.name, originalFileName: file.file.name, status: "UPLOADING"};
+        return [file.id, mockData];
+      })
+    );
+    setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
 
+    const response = await fetchPrivate("/invoices","POST", formData);
     if (response.ok) {
       console.log("Upload successful");
-      console.log(await response.json());
+      const uploadResponse: FileResponseType[] = await response.json();
+      // const newRecord = Object.fromEntries(
+      //   uploadResponse.map((uploadedFile) => [uploadedFile.fileName, uploadedFile])
+      // );
+      setUploadedFiles((prev) => {
+        const updateCurrFiles = {...prev};
+        for(const file of uploadResponse){
+          updateCurrFiles[file.clientID] = file;
+        }
+
+        return updateCurrFiles;
+      })
     } else {
       console.error("Upload failed");
     }
   }
 
-  function checkDuplicateFiles(newFiles: fileType[]) : fileType[]{
+  function checkDuplicateFiles(newFiles: FileType[]) : FileType[]{
     files.forEach((file) => {
       newFiles = newFiles.filter((newFile) => {
         //we want users to be able to upload invoices with the same file name from different folders, in the case of generic names being used. This improves UX and prevents user friction. We add a system to notify the user when there are duplicate invoice ID's, and give options for the user to resolve them.
@@ -65,7 +89,7 @@ function UploadInvoicePage() {
     return newFiles;
   }
 
-  function validateFiles(newFiles: fileType[]) : boolean{
+  function validateFiles(newFiles: FileType[]) : boolean{
     const parse = fileSchema.safeParse(newFiles);
     if(!parse.success){
       const uniqueIssues : string[] = Array.from(
@@ -79,61 +103,54 @@ function UploadInvoicePage() {
     return true;
   }
 
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-
     if(e.dataTransfer.files && e.dataTransfer.files.length > 0){
       //convert FileList (e.dataTransfer.files) into an array of Files and then use map to 
       //convert each file object into an object that contains key value pairs of id and file.
       //append these new objects to our already existing array of objects currFiles
-      let newFiles : fileType[] = Array.from(e.dataTransfer.files).map(file => ({
+      let newFiles : FileType[] = Array.from(e.dataTransfer.files).map(file => ({
         id: crypto.randomUUID(),
         file: file,
       }));
-
       newFiles = checkDuplicateFiles(newFiles);
-
       const allFiles = [...files, ...newFiles];
-
       if(!validateFiles(allFiles)){
         e.dataTransfer.clearData();
         return;
       }
-
       setFiles((currFiles) => [...currFiles, ...newFiles]);
       e.dataTransfer.clearData();
     }
   }
 
-  const handleClickToBrowse = (e : React.ChangeEvent<HTMLInputElement>) => {
+  function handleClickToBrowse(e : React.ChangeEvent<HTMLInputElement>) {
     if(e.target.files && e.target.files.length > 0){
-      let newFiles : fileType[] = Array.from(e.target.files).map(file => ({
+      let newFiles : FileType[] = Array.from(e.target.files).map(file => ({
           id: crypto.randomUUID(),
           file: file,
       }));
-
       newFiles = checkDuplicateFiles(newFiles);
-
       const allFiles = [...files, ...newFiles];
-
       //need to validate all files, not just new, to make sure <= 5 files.
       if(!validateFiles(allFiles)){
         return;
       }
-
       setFiles((currFiles) => [...currFiles, ...newFiles]);
     }
   }
 
-  const handleDeleteFileItem = (id : string, e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  function handleDeleteFileItem(id : string, e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     const newFileArr = files.filter((file) => file.id != id);
     setFiles(newFileArr);
   }
 
   return (
     <div className='flex flex-col justify-center items-center'>
+      {/* File upload section */}
+      {/* TODO: Move into its own component */}
       <Card className='w-full max-w-6xl my-4'>
         <CardHeader>
           <CardTitle className='flex gap-1 items-center'><CloudUpload/>Upload files here</CardTitle>
@@ -171,15 +188,7 @@ function UploadInvoicePage() {
 
 
       {/*Display recent upload status(24hr)*/}
-      <Card className='w-full max-w-6xl'>
-        <CardHeader >
-          <CardTitle>Recent Uploads</CardTitle>
-          <CardDescription>View status of recent uploads. (24hrs)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FileUploadStatus />
-        </CardContent>
-      </Card>
+      <UploadStatusCard uploadedFiles={uploadedFiles}/>
 
     </div>
     
