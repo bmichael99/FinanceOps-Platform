@@ -27,8 +27,5 @@ export async function getDocumentData(invoice_path){
     const failedFilePath = path.resolve(__dirname, "../invoices/failedFiles.txt")
     await fs.promises.appendFile(failedFilePath, `Failed to analyze: ${path.basename(invoice_path)}\nReason: ${err?.details?.error?.innererror?.message}\n\n`);
     throw new Error("Failed to analyze document.");
-  }
-  
-
-  
+  }  
 }
