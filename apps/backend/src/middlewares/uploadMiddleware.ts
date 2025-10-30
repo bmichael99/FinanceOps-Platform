@@ -17,7 +17,9 @@ const fileFilter = (_req : Request, file : Express.Multer.File, cb : FileFilterC
   if(file.mimetype == "application/pdf"){
     cb(null, true)
   } else {
-    cb(new Error('Invalid mime type. Must be pdf.'))
+    //todo: add an invalidfiles object to req so u can add filtered out files to failes in the createInvoice controller funciton.
+    //fine for now since we know front-end has this same error-checking.
+    console.error("File filtered by multer: ", file.filename);
     cb(null, false)
   } 
 }
