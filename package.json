@@ -17,6 +17,7 @@
   "private": true,
   "workspaces": [
     "packages/schemas",
+	"packages/types",
     "apps/backend",
     "apps/frontend"
   ],
