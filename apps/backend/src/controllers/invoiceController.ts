@@ -1,13 +1,20 @@
 import * as db from "../repositories/invoiceRepository";
 import {NextFunction, Request, Response} from "express";
 import {Queue} from 'bullmq';
+import { type FileResponseType } from "@finance-platform/types";
 
 export interface fileProcessingData {
     fileName: string,
 }
 
+function delay(ms: number){
+  return new Promise((resolve) => {setTimeout(resolve, ms)})
+}
+
 export async function createInvoice(req : Request, res : Response, _next: NextFunction) { 
   const files = req.files as Express.Multer.File[];
+  const clientIds = Array.isArray(req.body.clientIds) ? req.body.clientIds : [req.body.clientIds];
+
   if(!files || files.length == 0){
     return res.status(400).json("No files submitted. That shouldn't even be possible.");
   }
@@ -18,28 +25,28 @@ export async function createInvoice(req : Request, res : Response, _next: NextFu
   ))
 
   const fileQueue = new Queue('FileProcessing');
-  const successes : {file: string, originalFileName: string}[] = [];
-  const failures: {originalFileName: string, error: string}[] = [];
 
-  
+  const fileResponse: FileResponseType[] = [];
 
   for(const [i,result] of results.entries()) {
     if(result.status == "fulfilled"){
       try{
         const fileData : fileProcessingData = {fileName: files[i].filename};
         await fileQueue.add(files[i].filename, fileData, {removeOnComplete: true, removeOnFail: 25, attempts: 3, backoff: {type: "exponential", delay: 3000}}); 
-        successes.push({file: files[i].filename, originalFileName: files[i].originalname});
+        fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, status: "PENDING"})
       }
       catch(queueErr) {
-        failures.push({originalFileName: files[i].originalname, error: `Queueing failed: ${queueErr}`})
+        fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: `Queueing failed: ${queueErr}`})
+        console.error("Some invoices failed to enqueue: ", {fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: `Queueing failed: ${queueErr}`});
       }
     } else {
-      failures.push({originalFileName: files[i].originalname, error: String(result.reason)})
+      fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: String(result.reason)})
+      console.error("Some invoices failed to be saved to db: ", {fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: String(result.reason)});
     }
   }
 
-
-
   //return to user which files succeeded and failed. Failed only needs original name for UX
-  res.status(200).json({successes, failures});
+  await delay(3000);
+
+  res.status(200).json(fileResponse);
 }
