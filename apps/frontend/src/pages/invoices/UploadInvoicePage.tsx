@@ -58,20 +58,18 @@ function UploadInvoicePage() {
       })
     );
     setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
-
+    setFiles([]);
     const response = await fetchPrivate("/invoices","POST", formData);
     if (response.ok) {
       console.log("Upload successful");
+
       const uploadResponse: FileResponseType[] = await response.json();
-      // const newRecord = Object.fromEntries(
-      //   uploadResponse.map((uploadedFile) => [uploadedFile.fileName, uploadedFile])
-      // );
       setUploadedFiles((prev) => {
         const updateCurrFiles = {...prev};
         for(const file of uploadResponse){
-          updateCurrFiles[file.clientID] = file;
+          delete updateCurrFiles[file.clientID];
+          updateCurrFiles[file.fileName] = file;
         }
-
         return updateCurrFiles;
       })
     } else {
@@ -136,9 +134,11 @@ function UploadInvoicePage() {
       const allFiles = [...files, ...newFiles];
       //need to validate all files, not just new, to make sure <= 5 files.
       if(!validateFiles(allFiles)){
+        e.target.value = "";
         return;
       }
       setFiles((currFiles) => [...currFiles, ...newFiles]);
+      e.target.value = "";
     }
   }
 
@@ -188,6 +188,7 @@ function UploadInvoicePage() {
 
 
       {/*Display recent upload status(24hr)*/}
+      
       <UploadStatusCard uploadedFiles={uploadedFiles}/>
 
     </div>
