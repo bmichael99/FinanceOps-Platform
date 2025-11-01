@@ -7,6 +7,7 @@ import * as db from "../repositories/invoiceRepository";
 import IORedis from 'ioredis';
 import { uploadFile } from '../integrations/S3AWS';
 import path from "path";
+import fs from "fs";
 
 const connection = new IORedis({ maxRetriesPerRequest: null });
 
@@ -16,18 +17,19 @@ const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
   await db.updateUnprocessedInvoice(data.fileName, {currentProcessingStatus: "PROCESSING"})
 
   //send file to get processed by azure, then save extracted data to database. Also update status.
-  const extractedData = await processDocumentData(data.fileName);
-  console.log(extractedData);
+  // ### UNCOMMENT BELOW IN PROD. KEEPING COSTS DOWN BY NOT INCLUDING THIS IN DEV FOR NOW###
+  // const extractedData = await processDocumentData(data.fileName);
+  // console.log(extractedData);
 
-  const storeUnprocessedInvoice = await db.updateUnprocessedInvoice(data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
+  // const storeUnprocessedInvoice = await db.updateUnprocessedInvoice(data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
 
-  //return extractedData
-
-  //send file to s3 after processing is finished.
+  // //send file to s3 after processing is finished.
   const filePath = path.join(__dirname, "../../uploads/", data.fileName);
-  const s3Response = await uploadFile(data.fileName, filePath, storeUnprocessedInvoice.mimeType);
+  // const s3Response = await uploadFile(data.fileName, filePath, storeUnprocessedInvoice.mimeType);
+  await fs.promises.unlink(filePath);
 
-  return s3Response;
+  // return s3Response;
+  console.log(`Dev Build, Processed: ${data.fileName}`)
 },
 {
   connection,
