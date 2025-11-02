@@ -77,6 +77,25 @@ const strategy = new JwtStrategy(options, async (payload,done) => {
 passport.use(strategy);
 
 /**
+ *  -------------------- CACHE CONTROL --------------------
+ */
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method == "POST" || req.method == "PUT" || req.method == "DELETE"){
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.set("Expires", "0");
+  }
+  if(req.method == "GET"){
+    if(req.path.startsWith("/refresh") || req.path.startsWith("/auth")){
+      res.set("Cache-Control", "no-store, private");
+    } else {
+      res.set("Cache-Control", "max-age=300, must-revalidate")
+    }
+  }
+  next();
+});
+
+/**
  *  -------------------- ROUTER--------------------
  */
 
@@ -92,6 +111,8 @@ app.use(usersRouter);
 app.use(authRouter);
 app.use(refreshRouter);
 app.use(invoiceRouter);
+
+
 
 /**
  * -------------------- ERROR HANDLING --------------------
@@ -114,6 +135,8 @@ app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
   console.error(err); // Log unexpected errors
   res.status(500).json({ message: 'Something went wrong' });
 });
+
+
 
 /**
  *  -------------------- SERVER --------------------
