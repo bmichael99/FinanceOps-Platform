@@ -1,5 +1,5 @@
 import * as db from "../repositories/invoiceRepository";
-import {NextFunction, Request, Response} from "express";
+import {Request, Response} from "express";
 import {Queue} from 'bullmq';
 import { type FileResponseType } from "@finance-platform/types";
 
@@ -11,7 +11,7 @@ function delay(ms: number){
   return new Promise((resolve) => {setTimeout(resolve, ms)})
 }
 
-export async function createInvoice(req : Request, res : Response, _next: NextFunction) { 
+export async function createInvoice(req : Request, res : Response) { 
   const files = req.files as Express.Multer.File[];
   const clientIds = Array.isArray(req.body.clientIds) ? req.body.clientIds : [req.body.clientIds];
 
@@ -49,4 +49,14 @@ export async function createInvoice(req : Request, res : Response, _next: NextFu
   await delay(3000);
 
   res.status(200).json(fileResponse);
+}
+
+export async function invoiceEvents(_req: Request, res : Response){
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+  
+
+
 }
