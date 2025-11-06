@@ -12,6 +12,7 @@ import {
 import { type FileResponseType } from '@finance-platform/types'
 import { type UploadedFileType } from '../UploadInvoicePage';
 
+
 type Props = {
   uploadedFiles: UploadedFileType
 }
@@ -20,18 +21,25 @@ type tableProps = {
   uploadedFiles: UploadedFileType
 }
 
+// function DataTable({uploadedFiles} : tableProps){
+
+// }
+
+
+
 function UploadStatusTable({uploadedFiles} : tableProps) {
   return (
-    <Table>
+    <Table containerClassName='overflow-y-auto max-h-96'>
       <TableCaption>A list of your recent invoice uploads.</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="w-[100px]">Status</TableHead>
           <TableHead>File Name</TableHead>
+          <TableHead>Age</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {Object.values(uploadedFiles).map((file: FileResponseType) => (
+        {Object.values(uploadedFiles).sort((a,b) => (b.uploadTime.getTime() - a.uploadTime.getTime())).map((file: FileResponseType) => (
           <FileUploadStatus key= {file.fileName} file={file}/>
         ))}
       </TableBody>
@@ -40,9 +48,8 @@ function UploadStatusTable({uploadedFiles} : tableProps) {
 }
 
 function UploadStatusCard({uploadedFiles}: Props) {
-  console.log(uploadedFiles);
   return (
-      <Card className='w-full max-w-6xl'>
+      <Card className='w-full max-w-6xl mb-4'>
         <CardHeader >
           <CardTitle>Recent Uploads</CardTitle>
           <CardDescription>View status of recent uploads. (24hrs)</CardDescription>

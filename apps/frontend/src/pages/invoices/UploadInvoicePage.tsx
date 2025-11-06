@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/card"
 import useFetchPrivate from '@/hooks/useFetchPrivate';
 import { CloudUpload, FileText, FileTextIcon, FileType, Upload, X } from 'lucide-react';
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as z from "zod";
 import UploadStatusCard from './components/UploadStatusCard';
 import { type FileResponseType } from '@finance-platform/types';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 type FileType = {
   id: string,
@@ -24,13 +26,12 @@ export type UploadedFileType = Record<string, FileResponseType>;
 
 function UploadInvoicePage() {
   const [errors, setErrors] = useState<string[] | null>();
-  const [files, setFiles] = useState<FileType[]>([]);
-  // const [uploadedFiles, setUploadedFiles] = useState<FileResponseType[]>([]);
-  //create hashmap of <fileName, FileResponseType>
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileType>({});
+  const [files, setFiles] = useState<FileType[]>([]); //files before upload
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileType>({}); //response from server, file data
   const [dragOver,setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fetchPrivate = useFetchPrivate();
+
   const fileSchema = z.array(
     z.object({
       id: z.string(),
@@ -53,26 +54,27 @@ function UploadInvoicePage() {
     //Optimistic loading for instantly telling the user that their files are uploading.
     const optimisticData = Object.fromEntries(
       files.map((file) => {
-        const mockData: FileResponseType = {clientID: file.id, fileName: file.file.name, originalFileName: file.file.name, status: "UPLOADING"};
+        const mockData: FileResponseType = {clientID: file.id, fileName: file.file.name, originalFileName: file.file.name, uploadTime: new Date(), status: "UPLOADING"};
         return [file.id, mockData];
       })
     );
     setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
     setFiles([]);
-    const response = await fetchPrivate("/invoices","POST", formData);
+    const response = await fetchPrivate("/unprocessed-invoices","POST", formData);
     if (response.ok) {
       console.log("Upload successful");
-
       const uploadResponse: FileResponseType[] = await response.json();
       setUploadedFiles((prev) => {
         const updateCurrFiles = {...prev};
-        for(const file of uploadResponse){
+        for(let file of uploadResponse){
           delete updateCurrFiles[file.clientID];
+          file.uploadTime = new Date(file.uploadTime); //dates are converted to string over json and type is not preserved, convert back to date.
           updateCurrFiles[file.fileName] = file;
         }
         return updateCurrFiles;
       })
     } else {
+      setErrors(["Upload failed"]);
       console.error("Upload failed");
     }
   }
@@ -146,6 +148,42 @@ function UploadInvoicePage() {
     const newFileArr = files.filter((file) => file.id != id);
     setFiles(newFileArr);
   }
+
+  useEffect(() => {
+    const evtSource = new EventSource(API_URL + '/unprocessed-invoices/status', {
+      withCredentials: true,
+    });
+
+    evtSource.addEventListener("fileStatus", (event) => {
+      const data: {userId: number, fileName: string, originalFileName: string, uploadTime: Date, status: "UPLOADING" | "PENDING" | "PROCESSING" | "SAVING" | "COMPLETED" | "FAILED"} = JSON.parse(event.data);
+      setUploadedFiles((files) => ({
+        ...files,
+        [data.fileName]: {
+          ...files[data.fileName], 
+          status: data.status,
+          originalFileName: data.originalFileName,
+        },
+      }));
+    })
+
+    async function getRecentUploadedFiles(){
+      try{
+        // const recentUploadedFiles = await fetchPrivate("/invoices/recent", "GET");
+      }catch(err) {
+
+      }finally { 
+
+      }
+
+    }
+
+    getRecentUploadedFiles();
+
+
+    return(()=>{
+      evtSource.close();
+    })
+  }, [])
 
   return (
     <div className='flex flex-col justify-center items-center'>

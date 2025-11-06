@@ -4,5 +4,6 @@ export type FileResponseType = {
     fileName: string;
     originalFileName: string;
     status: FileStatus;
+    uploadTime: Date;
     error?: string;
 };
