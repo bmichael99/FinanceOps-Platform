@@ -1,5 +1,5 @@
 import { TableCell, TableRow } from '@/components/ui/table';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { type FileResponseType } from '@finance-platform/types';
 import { type FileStatus } from "@finance-platform/types";
 import { Spinner } from '@/components/ui/spinner';
@@ -10,8 +10,8 @@ type Props = {
 }
 
 function FileUploadStatus({file}: Props) {
-  // const [fileStatus, setFileStatus] = useState<FileStatus>("UPLOADING");
-  const timeSinceUpload = new Date().getTime() - file.uploadTime.getTime();
+  const [currTime, setCurrTime] = useState(new Date());
+  const timeSinceUpload = currTime.getTime() - file.uploadTime.getTime();
   const ageMinutes = Math.floor(timeSinceUpload/60000);
   let age = "now";
   if(ageMinutes >= 1 && ageMinutes <= 59){
@@ -19,6 +19,16 @@ function FileUploadStatus({file}: Props) {
   }else if(ageMinutes >= 60){
     age = Math.floor(ageMinutes/60) + "h";
   }
+
+  //update age every 60 seconds.
+  useEffect(() => {
+    const refreshComponent = setInterval(() => {
+      setCurrTime(new Date());
+    }, 60000)
+    return (() => {
+      clearInterval(refreshComponent);
+    })
+  }, [])
 
 
   return (
