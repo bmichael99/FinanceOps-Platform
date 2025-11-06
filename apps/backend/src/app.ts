@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import prisma from "./repositories/prisma";
+import prisma from "./config/prisma";
 import passport from "passport";
 import fs from "fs";
 import cookieParser from "cookie-parser";
@@ -53,10 +53,21 @@ app.use(passport.initialize());
 const pathToKey = path.join(__dirname, 'id_rsa_pub.pem');
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
-const options : StrategyOptionsWithoutRequest = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+const cookieExtractor = (req: any) => {
+  let token = null;
+  if (req && req.cookies) {
+    token = req.cookies['jwt'];
+  }
+  return token;
+};
+
+const options: StrategyOptionsWithoutRequest = {
+  jwtFromRequest: ExtractJwt.fromExtractors([
+    ExtractJwt.fromAuthHeaderAsBearerToken(), //auth header support
+    cookieExtractor,                          //cookie support
+  ]),
   secretOrKey: PUB_KEY,
-  algorithms: ['RS256']
+  algorithms: ['RS256'],
 };
 
 const strategy = new JwtStrategy(options, async (payload,done) => {
@@ -105,12 +116,14 @@ import usersRouter from "./routes/usersRouter";
 import authRouter from "./routes/authRouter";
 import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
+import unprocessedInvoiceRouter from './routes/unprocessedInvoiceRouter';
 
 app.use(indexRouter);
 app.use(usersRouter);
 app.use(authRouter);
 app.use(refreshRouter);
 app.use(invoiceRouter);
+app.use(unprocessedInvoiceRouter);
 
 
 
