@@ -6,7 +6,7 @@ function HomeDashboardPage() {
 
   useEffect(() => {
     async function getUsers(){
-      const response = await fetchPrivate("/users","GET");
+      const response = await fetchPrivate({endpoint: "/users", method: "GET"});
       console.log("get Users: ", await response.json());
     }
     getUsers();
