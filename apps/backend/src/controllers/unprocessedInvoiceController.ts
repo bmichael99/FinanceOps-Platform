@@ -7,6 +7,7 @@ import { delay } from "../utils/delay";
 import IORedis from 'ioredis';
 import { JobProgress } from "bullmq";
 import { type UnprocessedInvoiceFindManyType } from "../repositories/unprocessedInvoiceRepository";
+import { type FileStatus } from "@finance-platform/types";
 
 export interface fileProcessingData {
     userId: number,
@@ -35,7 +36,8 @@ redis.on("message", (_channel, message) => {
   const event = "fileStatus";
 
   //format response in the proper Event stream format
-  res.write(`event: ${event}\ndata: ${message}\n\n`);
+  if(res)
+    res.write(`event: ${event}\ndata: ${message}\n\n`);
 
   // console.log(`Received ${message} from ${channel}`);
 });
@@ -100,5 +102,9 @@ export async function getUnprocessedInvoices(req: Request, res: Response){
 
   const unprocessedInvoices = await db.getManyUnprocessedInvoicesWithFilters({where: filters});
 
-  res.status(200).json({invoices: unprocessedInvoices})
+  const shapedResponse: FileResponseType[] = unprocessedInvoices.map(invoice => 
+    ({fileName: invoice.fileName, originalFileName: invoice.originalFileName, status: invoice.currentProcessingStatus as FileStatus, uploadTime: invoice.createdAt})
+  )
+
+  res.status(200).json(shapedResponse)
 }
