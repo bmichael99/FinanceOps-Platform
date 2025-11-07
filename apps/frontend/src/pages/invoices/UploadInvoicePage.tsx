@@ -31,6 +31,7 @@ function UploadInvoicePage() {
   const [dragOver,setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fetchPrivate = useFetchPrivate();
+  const [loading, setLoading] = useState(true);
 
   const fileSchema = z.array(
     z.object({
@@ -60,16 +61,18 @@ function UploadInvoicePage() {
     );
     setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
     setFiles([]);
-    const response = await fetchPrivate("/unprocessed-invoices","POST", formData);
+    const response = await fetchPrivate({endpoint: "/unprocessed-invoices", method: "POST", bodyData: formData});
     if (response.ok) {
       console.log("Upload successful");
       const uploadResponse: FileResponseType[] = await response.json();
       setUploadedFiles((prev) => {
         const updateCurrFiles = {...prev};
         for(let file of uploadResponse){
-          delete updateCurrFiles[file.clientID];
-          file.uploadTime = new Date(file.uploadTime); //dates are converted to string over json and type is not preserved, convert back to date.
-          updateCurrFiles[file.fileName] = file;
+          if(file.clientID){
+            delete updateCurrFiles[file.clientID];
+            file.uploadTime = new Date(file.uploadTime); //dates are converted to string over json and type is not preserved, convert back to date.
+            updateCurrFiles[file.fileName] = file;
+          }
         }
         return updateCurrFiles;
       })
@@ -150,10 +153,10 @@ function UploadInvoicePage() {
   }
 
   useEffect(() => {
+    //SSE for file processing status updates
     const evtSource = new EventSource(API_URL + '/unprocessed-invoices/status', {
       withCredentials: true,
     });
-
     evtSource.addEventListener("fileStatus", (event) => {
       const data: {userId: number, fileName: string, originalFileName: string, uploadTime: Date, status: "UPLOADING" | "PENDING" | "PROCESSING" | "SAVING" | "COMPLETED" | "FAILED"} = JSON.parse(event.data);
       setUploadedFiles((files) => ({
@@ -162,25 +165,45 @@ function UploadInvoicePage() {
           ...files[data.fileName], 
           status: data.status,
           originalFileName: data.originalFileName,
+          uploadTime: new Date(data.uploadTime),
         },
       }));
     })
 
+    //Fetch uploads within the past 24 hours on page load
+    const controller = new AbortController();
     async function getRecentUploadedFiles(){
+      let aborted = false;
       try{
-        // const recentUploadedFiles = await fetchPrivate("/invoices/recent", "GET");
-      }catch(err) {
-
+        const oneDayAgo = new Date(Date.now() - 1000*60*60*24);
+        const response = await fetchPrivate({endpoint: `/unprocessed-invoices?since=${oneDayAgo}`, method: "GET", abortController: controller});
+        if(response.ok){
+          const recentUploadedFiles: FileResponseType[] = await response.json();
+          let recentObj: UploadedFileType = {};
+          for(let file of recentUploadedFiles){
+            recentObj[file.fileName] = {
+              ...file,
+              uploadTime: new Date(file.uploadTime)
+            };
+          }
+          setUploadedFiles(recentObj);
+        }
+      }catch(err: any) {
+        if(err.name === "AbortError"){
+          console.error("Request aborted");
+          aborted = true;
+          return;
+        }
+        console.error(err);
+        setErrors(["Unable to fetch data from the server, please refresh to try again"])
       }finally { 
-
+        if(!aborted)
+          setLoading(false);
       }
-
     }
-
     getRecentUploadedFiles();
-
-
     return(()=>{
+      controller.abort();
       evtSource.close();
     })
   }, [])
@@ -227,7 +250,7 @@ function UploadInvoicePage() {
 
       {/*Display recent upload status(24hr)*/}
       
-      <UploadStatusCard uploadedFiles={uploadedFiles}/>
+      <UploadStatusCard uploadedFiles={uploadedFiles} loading={loading}/>
 
     </div>
     
