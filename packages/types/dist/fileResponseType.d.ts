@@ -1,6 +1,6 @@
 import { type FileStatus } from "./fileStatusType";
 export type FileResponseType = {
-    clientID: string;
+    clientID?: string;
     fileName: string;
     originalFileName: string;
     status: FileStatus;
