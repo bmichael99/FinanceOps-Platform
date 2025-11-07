@@ -5,12 +5,20 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+interface FetchPrivateType {
+  endpoint : string,
+  method : string, 
+  bodyData ?: BodyInit | null, 
+  content_type ?: string, 
+  abortController ?: AbortController
+}
+
 const useFetchPrivate = () => {
   const {auth, setAuth} = useAuth();
   const refresh = useRefreshToken();
   const navigate = useNavigate();
 
-  const fetchPrivate = useCallback(async (endpoint : string, method : string, bodyData ?: BodyInit | null, content_type ?: string)=> {
+  const fetchPrivate = useCallback(async ({endpoint, method, bodyData, content_type, abortController} : FetchPrivateType)=> {
     const makeRequest = async (token : string) => {
       const headers : HeadersInit | undefined = {
         'Authorization' : token,
@@ -20,12 +28,14 @@ const useFetchPrivate = () => {
         headers["Content-Type"] = content_type;
       }
 
-
-      return await fetch(API_URL + endpoint, {
+      const fetchObj: RequestInit = {
         method: method,
         headers: headers,
         body: bodyData,
-      });
+        signal: abortController?.signal,
+      }
+
+      return await fetch(API_URL + endpoint, fetchObj);
     };
 
     let response = await makeRequest(auth.accessToken);
