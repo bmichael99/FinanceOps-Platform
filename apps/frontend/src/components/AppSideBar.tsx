@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { Calendar, Home, Inbox, Search, Settings, FileUp, ShieldCheck, SquarePlus, ChartNoAxesCombined, FileText } from "lucide-react"
  import { Link } from "react-router-dom";
 import {
   Sidebar,
@@ -19,19 +19,9 @@ const items = [
     icon: Home,
   },
   {
-    title: "Upload",
-    url: "/dashboard/invoices/upload",
-    icon: Inbox,
-  },
-  {
     title: "Calendar",
     url: "#",
     icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
   },
   {
     title: "Settings",
@@ -39,16 +29,89 @@ const items = [
     icon: Settings,
   },
 ]
+
+const invoiceItems = [
+  {
+    title: "Upload",
+    url: "/dashboard/invoices/upload",
+    icon: FileUp,
+  },
+  {
+    title: "Verify",
+    url: "#",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Browse",
+    url: "#",
+    icon: Search,
+  },
+  {
+    title: "Create",
+    url: "#",
+    icon: SquarePlus,
+  },
+]
+
+const analyticItems = [
+  {
+    title: "Insights",
+    url: "#",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    title: "Reports",
+    url: "#",
+    icon: FileText,
+  },
+]
  
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarContent>
+        {/*Application*/}
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {/*Invoices*/}
+        <SidebarGroup>
+          <SidebarGroupLabel>Invoices</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {invoiceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {/*Analytics*/}
+        <SidebarGroup>
+          <SidebarGroupLabel>Analytics</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {analyticItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}>
