@@ -2,6 +2,7 @@ import App from './App'
 import DashboardLayout from './layouts/DashboardLayout'
 import HomeDashboardPage from './pages/dashboards/HomeDashboardPage'
 import UploadInvoicePage from './pages/invoices/UploadInvoicePage'
+import VerifyInvoicePage from './features/invoices/Verify/VerifyInvoicePage'
 import SignupPage from './pages/auth/SignupPage'
 import LoginPage from './pages/auth/LoginPage'
 import RequireAuth from './components/RequireAuth'
@@ -43,7 +44,11 @@ const routes : any[] = [
               {
                 path:"upload",
                 Component: UploadInvoicePage
-              }
+              },
+              {
+                path:"verify",
+                Component: VerifyInvoicePage
+              },
             ]
           },
         ]
