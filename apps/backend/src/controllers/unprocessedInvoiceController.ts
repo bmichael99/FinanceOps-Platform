@@ -1,13 +1,14 @@
 import * as db from "../repositories/unprocessedInvoiceRepository";
 import {Request, Response} from "express";
 import { fileQueue } from "../config/redis";
-import { type FileResponseType } from "@finance-platform/types";
+import { FileStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
 import { addClient, deleteClient, getClient } from "../utils/clientHandler";
 import { delay } from "../utils/delay";
 import IORedis from 'ioredis';
 import { JobProgress } from "bullmq";
 import { type UnprocessedInvoiceFindManyType } from "../repositories/unprocessedInvoiceRepository";
-import { type FileStatus } from "@finance-platform/types";
+import { Invoice } from "../generated/prisma";
+import * as z from "zod";
 
 export interface fileProcessingData {
     userId: number,
@@ -93,18 +94,49 @@ export async function unprocessedInvoiceEvents(req: Request, res : Response){
   });
 }
 
+
+
 export async function getUnprocessedInvoices(req: Request, res: Response){
+  const QueryParams = z.object({
+    since: z.string().optional(),
+    view: z.enum(["SUMMARY", "FULL"]).optional(),
+    status: z.enum(Object.keys(FileStatus)).optional(),
+  })
+
+  type QueryParamsType = z.infer<typeof QueryParams>;
+
+  //apply filters
   const {since} = req.query;
+  const {status} = req.query;
 
   const filters: UnprocessedInvoiceFindManyType['where'] = { userId: req.user!.id };
 
   if (since) filters.createdAt = { gte: new Date(since as string) };
+  if (status) filters.currentProcessingStatus = "COMPLETED" as FileStatusType;
 
+
+  //query the db with filters
   const unprocessedInvoices = await db.getManyUnprocessedInvoicesWithFilters({where: filters});
 
-  const shapedResponse: FileResponseType[] = unprocessedInvoices.map(invoice => 
-    ({fileName: invoice.fileName, originalFileName: invoice.originalFileName, status: invoice.currentProcessingStatus as FileStatus, uploadTime: invoice.createdAt})
+  type ResponseType = FileResponseType[] | Invoice;
+
+  let response : ResponseType;
+  //apply view (shape of the result object)
+  const {view} = req.query;
+
+  //go over view enum (zod)
+  switch(view){
+    case("SUMMARY"):
+
+    break;
+    case("FULL"):
+
+    default:
+    break;
+  }
+  response = unprocessedInvoices.map(invoice => 
+    ({fileName: invoice.fileName, originalFileName: invoice.originalFileName, status: invoice.currentProcessingStatus as FileStatusType, uploadTime: invoice.createdAt})
   )
 
-  res.status(200).json(shapedResponse)
+  res.status(200).json(response)
 }
