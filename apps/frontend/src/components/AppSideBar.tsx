@@ -38,7 +38,7 @@ const invoiceItems = [
   },
   {
     title: "Verify",
-    url: "#",
+    url: "/dashboard/invoices/verify",
     icon: ShieldCheck,
   },
   {
