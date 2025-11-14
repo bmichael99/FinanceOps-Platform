@@ -1,2 +1,2 @@
-export * from "./fileStatusType";
-export * from "./fileResponseType";
+export * from "./fileStatusType.js";
+export * from "./fileResponseType.js";

@@ -1,4 +1,4 @@
-const FileStatus = {
+export const FileStatus = {
     UPLOADING: "UPLOADING",
     PENDING: "PENDING",
     PROCESSING: "PROCESSING",
@@ -6,4 +6,3 @@ const FileStatus = {
     COMPLETED: "COMPLETED",
     FAILED: "FAILED",
 };
-export {};

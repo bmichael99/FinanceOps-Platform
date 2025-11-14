@@ -1,4 +1,4 @@
-const FileStatus ={
+export const FileStatus ={
   UPLOADING: "UPLOADING",
   PENDING: "PENDING",
   PROCESSING: "PROCESSING",
@@ -7,4 +7,4 @@ const FileStatus ={
   FAILED: "FAILED",
 };
 
-export type FileStatus = keyof typeof FileStatus;
+export type FileStatusType = keyof typeof FileStatus;

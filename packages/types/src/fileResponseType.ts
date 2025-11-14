@@ -1,9 +1,10 @@
-import { type FileStatus } from "./fileStatusType"
+import { type FileStatusType } from "./fileStatusType"
 
 export type FileResponseType = {
-    clientID: string,
+    clientID?: string,
     fileName: string,
     originalFileName: string,
-    status: FileStatus,
+    status: FileStatusType,
+    uploadTime: Date,
     error?: string
   }

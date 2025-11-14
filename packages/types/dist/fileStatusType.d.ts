@@ -1,4 +1,4 @@
-declare const FileStatus: {
+export declare const FileStatus: {
     UPLOADING: string;
     PENDING: string;
     PROCESSING: string;
@@ -6,5 +6,4 @@ declare const FileStatus: {
     COMPLETED: string;
     FAILED: string;
 };
-export type FileStatus = keyof typeof FileStatus;
-export {};
+export type FileStatusType = keyof typeof FileStatus;
