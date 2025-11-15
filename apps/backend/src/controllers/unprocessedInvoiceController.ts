@@ -7,8 +7,9 @@ import { delay } from "../utils/delay";
 import IORedis from 'ioredis';
 import { JobProgress } from "bullmq";
 import { type UnprocessedInvoiceFindManyType } from "../repositories/unprocessedInvoiceRepository";
-import { Invoice } from "../generated/prisma";
+import { Prisma, type UnprocessedInvoice } from "../generated/prisma";
 import * as z from "zod";
+import { shapeFull, shapeSummary, shapeCustom } from "../utils/unprocessedInvoiceShapers";
 
 export interface fileProcessingData {
     userId: number,
@@ -95,48 +96,64 @@ export async function unprocessedInvoiceEvents(req: Request, res : Response){
 }
 
 
-
+/**
+ * Parameter options: 
+ * since: Date object that's received as a string, returns all unprocessed invoices greater than or equal to the date time provided. ex: ?since=new Date(Date.now() - 1000*60*60*24) will return unprocessed invoices within the last 24 hours
+ * status: currentProcessingStatus filter, this is defined by the FileStatusType in the shared types. Current options are: UPLOADING, PENDING, PROCESSING, SAVING, COMPLETED, FAILED
+ * view: sets the shape of the return data, determining what data is returned. Current options are summary: returns invoices as FileResponseType[] (shared type which includes fileName, originalFileName, status, and uploadTime(createdAt)). full: returns invoices as Invoice[] (all data returned by db, the full model for unprocessed invoice). custom: returns the specified fields in fields query param only.
+ * fields: Input as comma seperated values. If view type is set to custom then this endpoint will only return the specified fields. Possible fields reflect the prisma model. ex: ?fields=originalFileName,fileName,mimeType
+ */ 
 export async function getUnprocessedInvoices(req: Request, res: Response){
-  const QueryParams = z.object({
+  //define zod schema for parsing query params. This allows us to validate our query params.
+  const QueryParamsSchema = z.object({
     since: z.string().optional(),
-    view: z.enum(["SUMMARY", "FULL"]).optional(),
     status: z.enum(Object.keys(FileStatus)).optional(),
+    view: z.enum(["SUMMARY", "FULL", "CUSTOM"]).optional(),
+    fields: z.string().optional(),
   })
+  const result = QueryParamsSchema.safeParse(req.query);
+  if(!result.success){
+    res.status(400).json({message: "Invalid params"});
+    return;
+  }
 
-  type QueryParamsType = z.infer<typeof QueryParams>;
+  //extract query params from parsed params.
+  const {since, status, view, fields} = result.data;
 
-  //apply filters
-  const {since} = req.query;
-  const {status} = req.query;
+  //validate fields
+  const FieldsSchema = z.array(z.enum(Prisma.UnprocessedInvoiceScalarFieldEnum));
+  const fieldsListParse = FieldsSchema.safeParse(fields?.split(",") ?? []);
 
+  if(!fieldsListParse.success){
+    res.status(400).json({message: "Invalid fields"});
+    return;
+  }
+  const fieldsList = fieldsListParse.data;
+  
+  //set filters
   const filters: UnprocessedInvoiceFindManyType['where'] = { userId: req.user!.id };
-
-  if (since) filters.createdAt = { gte: new Date(since as string) };
-  if (status) filters.currentProcessingStatus = "COMPLETED" as FileStatusType;
-
+  if (since) filters.createdAt = { gte: new Date(since) };
+  if (status) filters.currentProcessingStatus = status as FileStatusType;
+  
 
   //query the db with filters
   const unprocessedInvoices = await db.getManyUnprocessedInvoicesWithFilters({where: filters});
 
-  type ResponseType = FileResponseType[] | Invoice;
-
+  //define our response and apply view (shape of the result object)
+  type ResponseType = FileResponseType[] | UnprocessedInvoice[];
   let response : ResponseType;
-  //apply view (shape of the result object)
-  const {view} = req.query;
-
-  //go over view enum (zod)
   switch(view){
     case("SUMMARY"):
-
+    response = unprocessedInvoices.map((invoice) => shapeSummary(invoice))
+    break;
+    case("CUSTOM"):
+    response = unprocessedInvoices.map((invoice) => shapeCustom(invoice, fieldsList));
     break;
     case("FULL"):
-
     default:
+    response = unprocessedInvoices;
     break;
   }
-  response = unprocessedInvoices.map(invoice => 
-    ({fileName: invoice.fileName, originalFileName: invoice.originalFileName, status: invoice.currentProcessingStatus as FileStatusType, uploadTime: invoice.createdAt})
-  )
 
   res.status(200).json(response)
 }
