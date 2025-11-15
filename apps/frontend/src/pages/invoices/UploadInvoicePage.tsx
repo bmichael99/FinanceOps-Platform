@@ -176,9 +176,11 @@ function UploadInvoicePage() {
       let aborted = false;
       try{
         const oneDayAgo = new Date(Date.now() - 1000*60*60*24);
-        const response = await fetchPrivate({endpoint: `/unprocessed-invoices?since=${oneDayAgo}`, method: "GET", abortController: controller});
+        const view = "SUMMARY";
+        const response = await fetchPrivate({endpoint: `/unprocessed-invoices?since=${oneDayAgo}&view=${view}`, method: "GET", abortController: controller});
         if(response.ok){
           const recentUploadedFiles: FileResponseType[] = await response.json();
+          console.log(recentUploadedFiles);
           let recentObj: UploadedFileType = {};
           for(let file of recentUploadedFiles){
             recentObj[file.fileName] = {
