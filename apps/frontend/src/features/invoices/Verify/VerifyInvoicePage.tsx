@@ -14,7 +14,7 @@ function VerifyInvoicePage({}: Props) {
       const response = await fetchPrivate({endpoint: `/unprocessed-invoices?view=${view}&fields=${fields}`, method: "GET"});
       const data = await response.json();
       console.log(data);
-      // test
+      // test2
 
     }
 
