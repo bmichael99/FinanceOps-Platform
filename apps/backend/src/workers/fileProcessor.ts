@@ -10,7 +10,7 @@ import path from "path";
 import fs from "fs";
 import { delay } from '../utils/delay';
 
-const connection = new IORedis({ maxRetriesPerRequest: null });
+const connection = new IORedis({ host: "192.168.0.206", port: 6379, maxRetriesPerRequest: null  });
 
 const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
   const data : fileProcessingData = job.data;

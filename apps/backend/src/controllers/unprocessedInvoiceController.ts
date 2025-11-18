@@ -19,7 +19,7 @@ export interface fileProcessingData {
     status: JobProgress,
 }
 
-const redis = new IORedis({ maxRetriesPerRequest: null });
+const redis = new IORedis({ host: "192.168.0.206", port: 6379, maxRetriesPerRequest: null  });
 
 redis.subscribe("FileProcessing", (err, count) => {
   if (err) {
