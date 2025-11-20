@@ -10,7 +10,7 @@ import path from "path";
 import fs from "fs";
 import { delay } from '../utils/delay';
 
-const connection = new IORedis({ host: "192.168.0.206", port: 6379, maxRetriesPerRequest: null  });
+const connection = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
 
 const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
   const data : fileProcessingData = job.data;
@@ -20,15 +20,15 @@ const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
 
   //send file to get processed by azure, then save extracted data to database. Also update status.
   // ### UNCOMMENT BELOW IN PROD. KEEPING COSTS DOWN BY NOT INCLUDING THIS IN DEV FOR NOW###
-  // const extractedData = await processDocumentData(data.fileName);
-  // console.log(extractedData);
+  const extractedData = await processDocumentData(data.fileName);
+  console.log(extractedData);
 
-  // const storeUnprocessedInvoice = await db.updateUnprocessedInvoice(data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
-  // job.updateProgress("SAVING");
+  const storeUnprocessedInvoice = await db.updateUnprocessedInvoice(data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
+  job.updateProgress("SAVING");
 
   // //send file to s3 after processing is finished.
   const filePath = path.join(__dirname, "../../uploads/", data.fileName);
-  // const s3Response = await uploadFile(data.fileName, filePath, storeUnprocessedInvoice.mimeType);
+  const s3Response = await uploadFile(data.fileName, filePath, storeUnprocessedInvoice.mimeType);
   await fs.promises.unlink(filePath);
   await delay(1500); //for testing only, remove when uncommenting everything else.
 
@@ -59,8 +59,6 @@ fileProcessor.on('progress', (job: Job, progress: JobProgress) => {
 
   const payload: fileProcessingData = {userId: data.userId, fileName: data.fileName, originalFileName: data.originalFileName, uploadTime: data.uploadTime, status: progress};
   connection.publish("FileProcessing", JSON.stringify(payload));
-
-
 });
 
 

@@ -10,6 +10,10 @@ import { type UnprocessedInvoiceFindManyType } from "../repositories/unprocessed
 import { Prisma, type UnprocessedInvoice } from "../generated/prisma";
 import * as z from "zod";
 import { shapeFull, shapeSummary, shapeCustom } from "../utils/unprocessedInvoiceShapers";
+import dotenv from 'dotenv';
+import * as s3 from "../integrations/S3AWS";
+import { asyncHandler } from "../utils/asyncHandler";
+dotenv.config();
 
 export interface fileProcessingData {
     userId: number,
@@ -19,7 +23,8 @@ export interface fileProcessingData {
     status: JobProgress,
 }
 
-const redis = new IORedis({ host: "192.168.0.206", port: 6379, maxRetriesPerRequest: null  });
+const redis = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
+const redisCache = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
 
 redis.subscribe("FileProcessing", (err, count) => {
   if (err) {
@@ -134,7 +139,6 @@ export async function getUnprocessedInvoices(req: Request, res: Response){
   const filters: UnprocessedInvoiceFindManyType['where'] = { userId: req.user!.id };
   if (since) filters.createdAt = { gte: new Date(since) };
   if (status) filters.currentProcessingStatus = status as FileStatusType;
-  
 
   //query the db with filters
   const unprocessedInvoices = await db.getManyUnprocessedInvoicesWithFilters({where: filters});
@@ -157,3 +161,36 @@ export async function getUnprocessedInvoices(req: Request, res: Response){
 
   res.status(200).json(response)
 }
+
+export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) => {
+  const invoiceId = req.params.invoiceId;
+  if(!invoiceId){
+    return res.sendStatus(404);
+  }
+  const cachedURL = await redisCache.get(invoiceId);
+  //if url is cached, return url.
+  if(cachedURL){
+    return res.status(200).json({signedURL: cachedURL, wasCached: true});
+  }
+  const signedURL = await s3.getSignedURL(invoiceId);
+  //cache signed URL and expire it after 15 minutes, our aws is set to expire links after 16 minutes
+  await redisCache.set(invoiceId, signedURL, 'EX', 900);
+  if(signedURL){
+    res.status(200).json({signedURL, wasCached: false});
+  } else{
+    res.sendStatus(404);
+  }
+})
+
+export const getUnprocessedInvoice = asyncHandler(async (req: Request, res: Response) => {
+  const paramSchema = z.object({
+    invoiceId: z.string(),
+  });
+  const result = paramSchema.safeParse(req.params);
+  if(!result.success){
+    return res.status(400).json({ message: "Invalid invoiceId", error: result.error });
+  }
+  const { invoiceId } = result.data;
+  const invoiceData = await db.getUnprocessedInvoiceByFileName(invoiceId);
+  return res.status(200).json(invoiceData);
+})

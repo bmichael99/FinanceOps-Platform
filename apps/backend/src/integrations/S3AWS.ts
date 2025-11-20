@@ -44,12 +44,11 @@ export async function getSignedURL (fileName: string){
   const getObjectParams : PutObjectCommandInput = {
     Bucket: bucketName,
     Key: fileName,
-
   }
 
   const command = new GetObjectCommand(getObjectParams);
 
-  const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
-  return url;
+    const url = await getSignedUrl(s3, command, { expiresIn: 960 });
+    return url;
 }
