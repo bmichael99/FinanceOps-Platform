@@ -1,10 +1,11 @@
 import {Queue} from "bullmq"; 
-
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const fileQueue = new Queue('FileProcessing', {
   connection: {
-    host: "192.168.0.206",
-    port: 6379,
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
   },
 });
 
