@@ -10,5 +10,6 @@ unprocessedInvoiceRouter.get("/unprocessed-invoices", passport.authenticate('jwt
 unprocessedInvoiceRouter.get("/unprocessed-invoices/status", passport.authenticate('jwt', {session: false}), unprocessedInvoiceController.unprocessedInvoiceEvents);
 unprocessedInvoiceRouter.get("/unprocessed-invoices/:invoiceId/signed-url", passport.authenticate('jwt', {session: false}), unprocessedInvoiceController.getS3SignedURL);
 unprocessedInvoiceRouter.get("/unprocessed-invoices/:invoiceId", passport.authenticate('jwt', {session: false}), unprocessedInvoiceController.getUnprocessedInvoice);
+unprocessedInvoiceRouter.post("/unprocessed-invoices/:invoiceId/verify", passport.authenticate('jwt', {session: false}), unprocessedInvoiceController.verifyUnprocessedInvoice);
 
 export default unprocessedInvoiceRouter;

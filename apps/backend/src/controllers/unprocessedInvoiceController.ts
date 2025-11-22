@@ -13,6 +13,7 @@ import { shapeFull, shapeSummary, shapeCustom } from "../utils/unprocessedInvoic
 import dotenv from 'dotenv';
 import * as s3 from "../integrations/S3AWS";
 import { asyncHandler } from "../utils/asyncHandler";
+import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -193,4 +194,44 @@ export const getUnprocessedInvoice = asyncHandler(async (req: Request, res: Resp
   const { invoiceId } = result.data;
   const invoiceData = await db.getUnprocessedInvoiceByFileName(invoiceId);
   return res.status(200).json(invoiceData);
+})
+
+//takes updated invoice data from the user after manual verification of extracted data. Move invoice from unprocessedinvoices table to invoices table.
+export const verifyUnprocessedInvoice = asyncHandler(async (req: Request, res: Response) => {
+  //update 
+  const invoiceFormResult = invoiceFormSchema.safeParse(req.body);
+  if(!invoiceFormResult.success){
+    return res.sendStatus(400).json({message: "Failed to parse the data received.", error: invoiceFormResult.error});
+  }
+  const invoiceFormData = invoiceFormResult.data;
+
+  //convert data from front-end to fit back-end prisma model. We use dates on the front-end to make sure input is valid but need to convert back to strings on the back-end
+  const updatedData: Pick<UnprocessedInvoice, keyof InvoiceFormType> = {
+    CustomerAddress: invoiceFormData.CustomerAddress ?? null,
+    DueDate: invoiceFormData.DueDate?.toISOString() ?? null,
+    CustomerName: invoiceFormData.CustomerName,
+    InvoiceDate: invoiceFormData.InvoiceDate.toISOString(),
+    InvoiceId: invoiceFormData.InvoiceId,
+    InvoiceTotal: invoiceFormData.InvoiceTotal.toString(),
+    VendorAddress: invoiceFormData.VendorAddress ?? null,
+    VendorName: invoiceFormData.VendorName,
+  }
+
+  const paramSchema = z.object({
+    invoiceId: z.string(),
+  });
+  const paramResult = paramSchema.safeParse(req.params);
+  if(!paramResult.success){
+    return res.status(400).json({ message: "Invalid invoiceId", error: paramResult.error });
+  }
+  const { invoiceId } = paramResult.data;
+  //TODO: fix invoiceFormSchema incompatibility with prisma type, then delete the unprocessed Invoice and add an entry to Invoice
+  const verifiedInvoice = await db.updateUnprocessedInvoice(invoiceId, updatedData);
+  //delete unprocessed invoice
+  //add invoice to Invoice table
+
+
+
+  console.log(updatedData);
+  res.sendStatus(200);
 })
