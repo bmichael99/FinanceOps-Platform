@@ -71,7 +71,7 @@ export type UnprocessedInvoice = {
   originalFileName: string;
   mimeType: string;
   filePath: string;
-  currentProcessingStatus: string;
+  currentProcessingStatus: ProcessingStatus;
   projectName: string | null;
   invoiceType: string | null;
   paymentStatus: string | null;

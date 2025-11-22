@@ -110,7 +110,7 @@ model UnprocessedInvoice {
   originalFileName              String
   mimeType                      String
   filePath                      String
-  currentProcessingStatus       String
+  currentProcessingStatus       ProcessingStatus  @default(PENDING)
 
   projectName                   String?
   invoiceType                   String?
