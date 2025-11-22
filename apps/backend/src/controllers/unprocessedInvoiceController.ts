@@ -1,7 +1,7 @@
 import * as db from "../repositories/unprocessedInvoiceRepository";
 import {Request, Response} from "express";
 import { fileQueue } from "../config/redis";
-import { FileStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
+import { FileStatus, ProcessingStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
 import { addClient, deleteClient, getClient } from "../utils/clientHandler";
 import { delay } from "../utils/delay";
 import IORedis from 'ioredis';
@@ -14,6 +14,8 @@ import dotenv from 'dotenv';
 import * as s3 from "../integrations/S3AWS";
 import { asyncHandler } from "../utils/asyncHandler";
 import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
+import * as invoiceDB from "../repositories/invoiceRepository";
+import * as userDB from "../repositories/userRepository";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -139,7 +141,7 @@ export async function getUnprocessedInvoices(req: Request, res: Response){
   //set filters
   const filters: UnprocessedInvoiceFindManyType['where'] = { userId: req.user!.id };
   if (since) filters.createdAt = { gte: new Date(since) };
-  if (status) filters.currentProcessingStatus = status as FileStatusType;
+  if (status) filters.currentProcessingStatus = status as ProcessingStatus;
 
   //query the db with filters
   const unprocessedInvoices = await db.getManyUnprocessedInvoicesWithFilters({where: filters});
@@ -227,8 +229,16 @@ export const verifyUnprocessedInvoice = asyncHandler(async (req: Request, res: R
   const { invoiceId } = paramResult.data;
   //TODO: fix invoiceFormSchema incompatibility with prisma type, then delete the unprocessed Invoice and add an entry to Invoice
   const verifiedInvoice = await db.updateUnprocessedInvoice(invoiceId, updatedData);
-  //delete unprocessed invoice
-  //add invoice to Invoice table
+  //shape verifiedInvoice to include user object so we can create invoice.
+  const invoiceInput : Prisma.InvoiceCreateInput = {
+    ...verifiedInvoice,
+    user: {
+      connect: {id: verifiedInvoice.userId}
+    }
+  }
+  //move UnprocessedInvoice to Invoice table.
+  const finishedInvoice = await invoiceDB.createInvoice(invoiceInput);
+  await db.deleteUnprocessedInvoiceByFileName(verifiedInvoice.fileName);
 
 
 
