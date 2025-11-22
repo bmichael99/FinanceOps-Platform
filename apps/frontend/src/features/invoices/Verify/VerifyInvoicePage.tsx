@@ -4,7 +4,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select"
-import { type FileStatusType } from '@finance-platform/types'
+import { type FileStatusType, type UnprocessedInvoice } from '@finance-platform/types'
 import VerifyInvoiceForm from './VerifyInvoiceForm'
 import VerifyInvoiceDisplayFile from './VerifyInvoiceDisplayFile'
 
@@ -19,7 +19,10 @@ type GetUnprocessedInvoiceNamesResponseType = {
 function VerifyInvoicePage({}: Props) {
   const [invoiceList, setInvoiceList] = useState<GetUnprocessedInvoiceNamesResponseType[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>();
+  const [invoiceData, setInvoiceData] = useState<UnprocessedInvoice>();
+  const [loadingInvoiceData, setLoadingInvoiceData] = useState<boolean>(false);
   const fetchPrivate = useFetchPrivate();
+  //fetch a list of unprocessed and completed invoices
   useEffect(() => {
     async function getUnprocessedInvoiceNames(){
       const view = "CUSTOM";
@@ -31,6 +34,23 @@ function VerifyInvoicePage({}: Props) {
     }
     getUnprocessedInvoiceNames();
   },[])
+
+  useEffect(() => {
+    if(selectedFile){
+      setLoadingInvoiceData(true);
+      const controller = new AbortController();
+      async function getUnprocessedInvoiceData() {
+        const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${selectedFile}`, method: "GET", abortController: controller});
+        const data: UnprocessedInvoice = await response.json();
+        setInvoiceData(data);
+        setLoadingInvoiceData(false);
+      }
+      getUnprocessedInvoiceData();
+      return(() => {
+        controller.abort();
+      })
+    }
+  },[selectedFile])
 
   function handleInvoiceSelect(invoiceId : string) {
     setSelectedFile(invoiceId);
@@ -44,9 +64,9 @@ function VerifyInvoicePage({}: Props) {
         {invoiceList.map(invoice => <NativeSelectOption key={invoice.fileName} value={invoice.fileName}>{invoice.originalFileName}</NativeSelectOption>)}
       </NativeSelect>
     </div>
-    <div className='grid grid-cols-2 mb-2 w-full h-full'>
-      <VerifyInvoiceForm invoiceId={selectedFile}></VerifyInvoiceForm>
-      <VerifyInvoiceDisplayFile invoiceId={selectedFile}></VerifyInvoiceDisplayFile>
+    <div className='grid grid-cols-2 mb-2 w-full h-full gap-4'>
+      {loadingInvoiceData ? <p>Change to loading skeleton</p> : ((selectedFile && invoiceData) && <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData}></VerifyInvoiceForm>)}
+      {selectedFile && <VerifyInvoiceDisplayFile invoiceId={selectedFile}></VerifyInvoiceDisplayFile>}
     </div>
   </div>
   )

@@ -2,7 +2,7 @@ import useFetchPrivate from '@/hooks/useFetchPrivate'
 import React, { useEffect, useState } from 'react'
 
 type Props = {
-  invoiceId: string | undefined
+  invoiceId: string
 }
 
 type getSignedURLResponseType = {
@@ -14,20 +14,18 @@ function VerifyInvoiceDisplayFile({invoiceId}: Props) {
   const [signedURL, setSignedURL] = useState<string>();
   const fetchPrivate = useFetchPrivate();
   useEffect(() => {
-    if(invoiceId){
-      const controller = new AbortController();
-      async function fetchS3() {
-        const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
-        const data : getSignedURLResponseType = await response.json();
-        setSignedURL(data.signedURL);
-        console.log(data);
-      }
-
-      fetchS3();
-      return(() => {
-        controller.abort();
-      })
+    const controller = new AbortController();
+    async function fetchS3() {
+      const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
+      const data : getSignedURLResponseType = await response.json();
+      setSignedURL(data.signedURL);
+      console.log(data);
     }
+
+    fetchS3();
+    return(() => {
+      controller.abort();
+    })
   }, [invoiceId])
 
   return (
