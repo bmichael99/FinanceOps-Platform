@@ -44,7 +44,7 @@ function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
   async function submitForm(data: InvoiceFormType){
     console.log(data);
     const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
-    console.log(response);
+    console.log(await response.json());
     if (response.status == 200){
       navigate("/dashboard/invoices/verify");
     }

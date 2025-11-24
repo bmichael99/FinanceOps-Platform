@@ -15,14 +15,14 @@ function VerifyInvoiceDisplayFile({invoiceId}: Props) {
   const fetchPrivate = useFetchPrivate();
   useEffect(() => {
     const controller = new AbortController();
-    async function fetchS3() {
+    async function fetchSignedURL() {
       const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
       const data : getSignedURLResponseType = await response.json();
       setSignedURL(data.signedURL);
       console.log(data);
     }
 
-    fetchS3();
+    fetchSignedURL();
     return(() => {
       controller.abort();
     })

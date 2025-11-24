@@ -200,7 +200,6 @@ export const getUnprocessedInvoice = asyncHandler(async (req: Request, res: Resp
 
 //takes updated invoice data from the user after manual verification of extracted data. Move invoice from unprocessedinvoices table to invoices table.
 export const verifyUnprocessedInvoice = asyncHandler(async (req: Request, res: Response) => {
-  //update 
   const invoiceFormResult = invoiceFormSchema.safeParse(req.body);
   if(!invoiceFormResult.success){
     return res.sendStatus(400).json({message: "Failed to parse the data received.", error: invoiceFormResult.error});
@@ -228,20 +227,19 @@ export const verifyUnprocessedInvoice = asyncHandler(async (req: Request, res: R
   }
   const { invoiceId } = paramResult.data;
   //TODO: fix invoiceFormSchema incompatibility with prisma type, then delete the unprocessed Invoice and add an entry to Invoice
-  const verifiedInvoice = await db.updateUnprocessedInvoice(invoiceId, updatedData);
+  const {id, userId, ...verifiedInvoice} = await db.updateUnprocessedInvoice(invoiceId, updatedData);
   //shape verifiedInvoice to include user object so we can create invoice.
   const invoiceInput : Prisma.InvoiceCreateInput = {
     ...verifiedInvoice,
     user: {
-      connect: {id: verifiedInvoice.userId}
+      connect: {id: userId}
     }
   }
   //move UnprocessedInvoice to Invoice table.
   const finishedInvoice = await invoiceDB.createInvoice(invoiceInput);
-  await db.deleteUnprocessedInvoiceByFileName(verifiedInvoice.fileName);
+  if(finishedInvoice){
+    await db.deleteUnprocessedInvoiceByFileName(verifiedInvoice.fileName);
+  }
 
-
-
-  console.log(updatedData);
-  res.sendStatus(200);
+  res.status(200).json(finishedInvoice);
 })
