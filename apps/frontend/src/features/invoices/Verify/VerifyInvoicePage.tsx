@@ -70,7 +70,11 @@ function VerifyInvoicePage({}: Props) {
       </NativeSelect>
     </div>
     <div className='grid grid-cols-2 mb-2 w-full h-full gap-4'>
-      {selectedFile && (!invoiceData ? <p>Change to loading skeleton</p> : <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData}></VerifyInvoiceForm>)}
+      {selectedFile && ((loadingInvoiceData || !invoiceData) 
+      ? 
+      <div className='flex justify-center items-center gap-2'><Spinner/><p>Loading form data...</p></div> 
+      :
+      <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData}></VerifyInvoiceForm>)}
       {selectedFile && <VerifyInvoiceDisplayFile invoiceId={selectedFile}></VerifyInvoiceDisplayFile>}
     </div>
   </div>
