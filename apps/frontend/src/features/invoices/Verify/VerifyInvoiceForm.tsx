@@ -25,6 +25,7 @@ type Props = {
 }
 
 function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
+  const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
   const fetchPrivate = useFetchPrivate();
   const navigate = useNavigate();
   const {register, handleSubmit, formState:{errors}} = useForm(
@@ -42,11 +43,11 @@ function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
     resolver: zodResolver(invoiceFormSchema)});
 
   async function submitForm(data: InvoiceFormType){
-    console.log(data);
+    setIsSubmittingForm(true);
     const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
     console.log(await response.json());
     if (response.status == 200){
-      navigate("/dashboard/invoices/verify");
+      navigate(0);
     }
   }
 
@@ -110,8 +111,8 @@ function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
           </FieldGroup>
         </FieldSet>
         <Field orientation="horizontal"> 
-          <Button type="submit">Submit</Button>
-          <Button variant="destructive" type="button">Delete Invoice</Button>
+          <Button disabled={isSubmittingForm ? true : false} type="submit">Submit</Button>
+          <Button disabled={isSubmittingForm ? true : false} variant="destructive" type="button">Delete Invoice</Button>
         </Field>
         </FieldGroup>
       </form>}
