@@ -178,6 +178,7 @@ export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) =
   const signedURL = await s3.getSignedURL(invoiceId);
   //cache signed URL and expire it after 15 minutes, our aws is set to expire links after 16 minutes
   await redisCache.set(invoiceId, signedURL, 'EX', 900);
+  
   if(signedURL){
     res.status(200).json({signedURL, wasCached: false});
   } else{
