@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 import prisma from "../config/prisma";
 import {InvoiceTable} from "../generated/prisma"
-import {UnprocessedInvoiceTable} from "../generated/prisma"
 import { Prisma } from '../generated/prisma'
 
 export const createInvoice = async (invoiceData : Prisma.InvoiceCreateInput) => {
@@ -47,6 +46,12 @@ export const getAllInvoices = async() => {
   return invoices;
 }
 
+export const getAllInvoicesWithFilters = async(filters: Prisma.InvoiceFindManyArgs) => {
+  const invoices = await prisma.invoice.findMany(filters);
+
+  return invoices;
+}
+
 export const findInvoiceWithFileName = async(fileName : string) =>{
   const invoice = await prisma.invoice.findUnique({
     where: {
@@ -72,4 +77,12 @@ export const getAllInvoicesIncludingTablesByProjectName = async(projectName : st
     })
 
     return invoices;
+}
+
+export const deleteInvoiceByInvoiceId = async (invoiceId : string) => {
+  const invoice = await prisma.invoice.delete({
+    where: {fileName : invoiceId}
+  })
+
+  return invoice;
 }
