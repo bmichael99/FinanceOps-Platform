@@ -7,6 +7,7 @@ import SignupPage from './pages/auth/SignupPage'
 import LoginPage from './pages/auth/LoginPage'
 import RequireAuth from './components/RequireAuth'
 import Logout from './components/Logout'
+import BrowseInvoicePage from './features/invoices/Browse/BrowseInvoicePage'
 
 const routes : any[] = [
   //unprotected routes
@@ -48,6 +49,10 @@ const routes : any[] = [
               {
                 path:"verify",
                 Component: VerifyInvoicePage
+              },
+              {
+                path:"browse",
+                Component: BrowseInvoicePage
               },
             ]
           },

@@ -2,7 +2,7 @@ import React from 'react'
 import AppSideBar from '@/components/AppSideBar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Outlet } from 'react-router-dom'
-
+import { Toaster } from "@/components/ui/sonner"
 function DashboardLayout({children}: {children?: React.ReactNode}) {
   return (
 
@@ -18,6 +18,7 @@ function DashboardLayout({children}: {children?: React.ReactNode}) {
        a stupid ass wrapper takes up the screen*/}
       <main className='w-full px-4'>
         <Outlet />
+        <Toaster />
       </main>
     </SidebarProvider>
     

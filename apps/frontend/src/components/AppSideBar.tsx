@@ -43,7 +43,7 @@ const invoiceItems = [
   },
   {
     title: "Browse",
-    url: "#",
+    url: "/dashboard/invoices/browse",
     icon: Search,
   },
   {
