@@ -309,7 +309,6 @@ export async function getInvoiceTableData(req: Request, res: Response){
 }
 
 export async function deleteInvoice(req: Request, res: Response) {
-  console.log("hello!");
   const paramsSchema = z.object({
     invoiceId: z.string()
   })
