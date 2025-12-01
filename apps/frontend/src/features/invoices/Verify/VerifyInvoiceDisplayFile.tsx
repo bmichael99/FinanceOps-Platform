@@ -19,7 +19,7 @@ function VerifyInvoiceDisplayFile({invoiceId}: Props) {
     const controller = new AbortController();
     async function fetchSignedURL() {
       setLoadingSignedURL(true);
-      const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
+      const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
       const data : getSignedURLResponseType = await response.json();
       setSignedURL(data.signedURL);
       setLoadingSignedURL(false);
@@ -33,7 +33,7 @@ function VerifyInvoiceDisplayFile({invoiceId}: Props) {
   }, [invoiceId])
 
   return (
-  <div>
+  <div className='min-h-svh xl:min-h-0 border-1'>
     {loadingSignedURL ?
     <Skeleton className='h-full w-full'></Skeleton> :
     <iframe src={signedURL} className='min-w-full h-full'></iframe>
