@@ -85,7 +85,7 @@ function LoginPage() {
             </div>
             <div className="grid gap-2">
               <Label className={errors.password && "text-red-600"}htmlFor="password">Password</Label>
-              <Input aria-invalid={errors.password && 'true'} className={errors.password && "border-red-600"} type="text" id="password" {...register("password")}/>
+              <Input aria-invalid={errors.password && 'true'} className={errors.password && "border-red-600"} type="password" id="password" {...register("password")}/>
               <p className="text-red-600">{errors?.password?.message}</p>
             </div>
              </form>
