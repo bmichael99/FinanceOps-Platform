@@ -10,6 +10,7 @@ import VerifyInvoiceDisplayFile from './VerifyInvoiceDisplayFile'
 import { Spinner } from '@/components/ui/spinner'
 import { useNavigate } from 'react-router-dom'
 import type { InvoiceFormType } from '@finance-platform/schemas'
+import { toast } from 'sonner'
 
 type Props = {}
 
@@ -71,6 +72,20 @@ function VerifyInvoicePage({}: Props) {
       navigate(0);
     }
   }
+  
+  async function deleteInvoice(invoice: Invoice){
+    if(!window.confirm(`Are you sure you want to delete Invoice ${invoice.originalFileName} with ID ${invoice.InvoiceId}?`))
+      return;
+    //optimistic UI update with restoration on API failure.
+    const {fileName} = invoice;
+
+    const response = await fetchPrivate({endpoint:`/invoices/${fileName}`, method:"delete"});
+    if(response.ok){
+      navigate(0);
+    } else {
+      toast.error("Failed to delete invoice. Please try again later.");
+    }
+  }
 
   return (
   <div className='flex flex-col items-center h-svh'>
@@ -86,7 +101,7 @@ function VerifyInvoicePage({}: Props) {
       ? 
       <div className='flex justify-center items-center gap-2'><Spinner/><p>Loading form data...</p></div> 
       :
-      <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData} onSubmit={submitForm}></VerifyInvoiceForm>)}
+      <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData} onSubmit={submitForm} onDelete={deleteInvoice}></VerifyInvoiceForm>)}
       {selectedFile && <VerifyInvoiceDisplayFile invoiceId={selectedFile}></VerifyInvoiceDisplayFile>}
     </div>
   </div>
