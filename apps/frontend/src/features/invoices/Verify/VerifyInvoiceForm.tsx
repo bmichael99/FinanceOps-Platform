@@ -18,16 +18,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { invoiceFormSchema, type InvoiceFormType } from '@finance-platform/schemas';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner"
 
 type Props = {
   invoiceId: string
   invoiceData: Invoice,
   onSubmit: (data: InvoiceFormType, invoiceId: string) => Promise<void>,
+  onDelete: (invoice: Invoice) => Promise<void>,
 }
 
-function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit}: Props) {
+function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) {
   const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
   const fetchPrivate = useFetchPrivate();
+  const navigate = useNavigate();
   const {register, handleSubmit, formState:{errors}} = useForm(
     //set default values to results from api request.
     
@@ -104,7 +107,7 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit}: Props) {
         </FieldSet>
         <Field orientation="horizontal"> 
           <Button disabled={isSubmittingForm ? true : false} type="submit">Submit</Button>
-          <Button disabled={isSubmittingForm ? true : false} variant="destructive" type="button">Delete Invoice</Button>
+          <Button disabled={isSubmittingForm ? true : false} variant="destructive" type="button" onClick={async () => await onDelete(invoiceData)}>Delete Invoice</Button>
         </Field>
         </FieldGroup>
       </form>}
