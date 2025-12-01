@@ -4,6 +4,7 @@ import prisma from "../config/prisma";
 import { Prisma } from '../generated/prisma'
 
 export type InvoiceFindManyType = Prisma.InvoiceFindManyArgs;
+export type InvoiceFindUniqueType = Prisma.InvoiceFindUniqueArgs;
 
 export const createInvoice = async (invoiceData : Prisma.InvoiceCreateInput) => {
     
@@ -35,6 +36,12 @@ export const getAllInvoices = async() => {
 
 export const getAllInvoicesWithFilters = async(filters: Prisma.InvoiceFindManyArgs) => {
   const invoices = await prisma.invoice.findMany(filters);
+
+  return invoices;
+}
+
+export const getInvoiceWithFilters = async(filters: Prisma.InvoiceFindUniqueArgs) => {
+  const invoices = await prisma.invoice.findUnique(filters);
 
   return invoices;
 }

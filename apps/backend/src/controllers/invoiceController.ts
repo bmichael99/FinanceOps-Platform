@@ -7,7 +7,7 @@ import { addClient, deleteClient, getClient } from "../utils/clientHandler";
 import { delay } from "../utils/delay";
 import IORedis from 'ioredis';
 import { JobProgress } from "bullmq";
-import { type InvoiceFindManyType } from "../repositories/invoiceRepository";
+import { type InvoiceFindManyType, type InvoiceFindUniqueType } from "../repositories/invoiceRepository";
 import { Prisma } from "../generated/prisma";
 import * as z from "zod";
 import { shapeFull, shapeSummary, shapeCustom } from "../utils/invoiceShapers";
@@ -151,6 +151,9 @@ export async function getInvoices(req: Request, res: Response){
 
   //query the db with filters
   const invoices = await db.getAllInvoicesWithFilters({where: filters});
+  if(!invoices){
+    return res.sendStatus(404); //not found
+  }
 
   //define our response and apply view (shape of the result object)
   type ResponseType = FileResponseType[] | Invoice[];
@@ -170,6 +173,47 @@ export async function getInvoices(req: Request, res: Response){
 
   res.status(200).json(response)
 }
+
+export const getInvoice = asyncHandler(async (req: Request, res: Response) => {
+//get invoiceId from URL param
+  const paramSchema = z.object({
+    invoiceId: z.string(),
+  });
+  const result = paramSchema.safeParse(req.params);
+  if(!result.success){
+    return res.status(400).json({ message: "Invalid invoiceId", error: result.error });
+  }
+  const { invoiceId } = result.data;
+
+//get query params and apply filters to db request
+  const QueryParamsSchema = z.object({
+    since: z.string().optional(),
+    status: z.enum(Object.keys(FileStatus)).optional(),
+    verified: z.string().transform((s) => {
+      if(s == "true") return true;
+      if(s == "false") return false;
+    }).optional(),
+  })
+  const QuerySchemaResult = QueryParamsSchema.safeParse(req.query);
+  if(!QuerySchemaResult.success){
+    res.status(400).json({message: "Invalid params"});
+    return;
+  }
+  //extract query params from parsed params.
+  const {since, status, verified} = QuerySchemaResult.data;
+  //set filters
+  const filters: InvoiceFindUniqueType['where'] = { userId: req.user!.id, fileName: invoiceId};
+  if (since) filters.createdAt = { gte: new Date(since) };
+  if (status) filters.currentProcessingStatus = status as ProcessingStatus;
+  if (verified !== undefined) filters.verificationStatus = verified ? "VERIFIED" : "UNVERIFIED";
+
+//query the db with filters
+  const invoiceData = await db.getInvoiceWithFilters({where: filters});
+  if(!invoiceData){
+    return res.sendStatus(404); //not found
+  }
+  return res.status(200).json(invoiceData);
+})
 
 export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) => {
   const invoiceId = req.params.invoiceId;
@@ -201,22 +245,6 @@ export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) =
   } else{
     res.sendStatus(404);
   }
-})
-
-export const getInvoice = asyncHandler(async (req: Request, res: Response) => {
-  const paramSchema = z.object({
-    invoiceId: z.string(),
-  });
-  const result = paramSchema.safeParse(req.params);
-  if(!result.success){
-    return res.status(400).json({ message: "Invalid invoiceId", error: result.error });
-  }
-  const { invoiceId } = result.data;
-  const invoiceData = await db.getInvoiceWithFileName(req.user!.id, invoiceId);
-  if(!invoiceData){
-    return res.sendStatus(404);
-  }
-  return res.status(200).json(invoiceData);
 })
 
 //takes updated invoice data from the user after manual verification of extracted data, update invoice table, mark invoice as verified.
