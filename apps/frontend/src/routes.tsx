@@ -8,6 +8,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RequireAuth from './components/RequireAuth'
 import Logout from './components/Logout'
 import BrowseInvoicePage from './features/invoices/Browse/BrowseInvoicePage'
+import ViewInvoicePage from './features/invoices/Browse/ViewInvoicePage'
 
 const routes : any[] = [
   //unprotected routes
@@ -44,15 +45,19 @@ const routes : any[] = [
             children: [
               {
                 path:"upload",
-                Component: UploadInvoicePage
+                Component: UploadInvoicePage,
               },
               {
                 path:"verify",
-                Component: VerifyInvoicePage
+                Component: VerifyInvoicePage,
               },
               {
                 path:"browse",
-                Component: BrowseInvoicePage
+                Component: BrowseInvoicePage,
+              },
+              {
+                path:"browse/:invoiceId", //since we don't use an outlet for this but we want the url to be under browse, we do not make this a child of browse.
+                Component: ViewInvoicePage,
               },
             ]
           },
