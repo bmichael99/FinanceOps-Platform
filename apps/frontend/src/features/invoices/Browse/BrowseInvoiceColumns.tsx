@@ -2,7 +2,7 @@ import React from 'react'
 import {type InvoiceTableData} from "@finance-platform/types"
 import {type ColumnDef} from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, SquareArrowOutUpRight } from "lucide-react"
 import { toast } from "sonner"
 import {
   DropdownMenu,
@@ -12,7 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import useFetchPrivate from '@/hooks/useFetchPrivate'
+import { useNavigate } from 'react-router-dom'
 
 type useBrowseInvoiceColumnsType = {
   setInvoiceTableData: React.Dispatch<React.SetStateAction<InvoiceTableData[] | undefined>>
@@ -20,6 +26,7 @@ type useBrowseInvoiceColumnsType = {
 
 export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoiceColumnsType){
   const fetchPrivate = useFetchPrivate();
+  const navigate = useNavigate();
   const thirtyDaysInMilliseconds = 30*24*60*60*1000;
   const currentTime = new Date().getTime();
 
@@ -46,6 +53,22 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
 
   const columns: ColumnDef<InvoiceTableData>[] = [
     {
+      accessorKey: "OpenFile",
+      header: "",
+      cell: ({row}) => {
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <Button variant='ghost' onClick={() => navigate(`${row.original.fileName}`)}><SquareArrowOutUpRight /></Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              View/Edit Invoice
+            </TooltipContent>
+          </Tooltip>
+        )
+      }
+    },
+    {
       accessorKey: "InvoiceTotal",
       // header: () => <div className="text-right">Invoice Amount</div>,
       header: ({ column }) => {
@@ -66,7 +89,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
           currency: "USD",
         }).format(amount)
         return (
-        <div className='pl-3 font-medium'>
+        <div className='pl-3 font-medium flex items-center'>
           {formatted}
         </div>
         )
@@ -75,6 +98,13 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
     {
       accessorKey: "InvoiceId",
       header: "Invoice No.",
+      cell: ({row}) => {
+        return (
+        <div className=''>
+          {row.original.InvoiceId}
+        </div>
+        )
+      },
     },
     {
       accessorKey: "originalFileName",
