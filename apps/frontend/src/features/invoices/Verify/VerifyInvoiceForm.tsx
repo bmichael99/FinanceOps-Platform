@@ -1,6 +1,6 @@
 import useFetchPrivate from '@/hooks/useFetchPrivate';
 import React, { useEffect, useState } from 'react'
-import {type UnprocessedInvoice} from "@finance-platform/types"
+import {type Invoice} from "@finance-platform/types"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod";
@@ -21,15 +21,16 @@ import { useNavigate } from 'react-router-dom';
 
 type Props = {
   invoiceId: string
-  invoiceData: UnprocessedInvoice
+  invoiceData: Invoice,
+  onSubmit: (data: InvoiceFormType, invoiceId: string) => Promise<void>,
 }
 
-function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
+function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit}: Props) {
   const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
   const fetchPrivate = useFetchPrivate();
-  const navigate = useNavigate();
   const {register, handleSubmit, formState:{errors}} = useForm(
     //set default values to results from api request.
+    
     {defaultValues: {
         CustomerName: invoiceData.CustomerName ?? undefined,
         InvoiceId: invoiceData.InvoiceId ?? undefined,
@@ -38,22 +39,13 @@ function VerifyInvoiceForm({invoiceId, invoiceData}: Props) {
         VendorName: invoiceData.VendorName ?? undefined,
         VendorAddress: invoiceData.VendorAddress ?? undefined,
         CustomerAddress: invoiceData.CustomerAddress ?? undefined,
-        InvoiceTotal: Number(invoiceData.InvoiceTotal?.replace(/[$,]/g,"")) || -1,
+        InvoiceTotal: invoiceData.InvoiceTotal || -1,
       },
     resolver: zodResolver(invoiceFormSchema)});
 
-  async function submitForm(data: InvoiceFormType){
-    setIsSubmittingForm(true);
-    const response = await fetchPrivate({endpoint: `/unprocessed-invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
-    console.log(await response.json());
-    if (response.status == 200){
-      navigate(0);
-    }
-  }
-
   return (
     <div>
-      {invoiceId && <form onSubmit={handleSubmit(async (data) => {await submitForm(data);})}>
+      {invoiceId && <form onSubmit={handleSubmit(async (data) => {setIsSubmittingForm(true); await onSubmit(data, invoiceId);})}>
         <FieldGroup>
         {/*Required Fields*/}
         <FieldSet>
