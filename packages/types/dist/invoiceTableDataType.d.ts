@@ -1,2 +1,2 @@
 import { Invoice } from "./prisma-types";
-export type InvoiceTableData = Pick<Invoice, "fileName" | "originalFileName" | "InvoiceDate" | "InvoiceTotal" | "InvoiceId">;
+export type InvoiceTableData = Pick<Invoice, "fileName" | "originalFileName" | "InvoiceDate" | "InvoiceTotal" | "InvoiceId" | "DueDate">;
