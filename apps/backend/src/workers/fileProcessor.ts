@@ -15,7 +15,7 @@ const connection = new IORedis({ host: process.env.REDIS_HOST, port: Number(proc
 const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
   const data : fileProcessingData = job.data;
 
-  await db.updateInvoice(data.fileName, {currentProcessingStatus: "PROCESSING"})
+  await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "PROCESSING"})
   job.updateProgress("PROCESSING");
 
   //send file to get processed by azure, then save extracted data to database. Also update status.
@@ -23,7 +23,7 @@ const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
   const extractedData = await processDocumentData(data.fileName);
   console.log(extractedData);
 
-  const storeInvoice = await db.updateInvoice(data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
+  const storeInvoice = await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
   job.updateProgress("SAVING");
 
   // //send file to s3 after processing is finished.
@@ -44,12 +44,12 @@ const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
 
 fileProcessor.on('completed', async (job: Job, _returnValue: any) => {
   const data : fileProcessingData = job?.data;
-  await db.updateInvoice(data.fileName, {currentProcessingStatus: "COMPLETED"});
+  await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "COMPLETED"});
 })
 
 fileProcessor.on('failed', async (job: Job | undefined, error: Error, _prev: string) => {
   const data : fileProcessingData = job?.data;
-  await db.updateInvoice(data.fileName, {currentProcessingStatus: "FAILED"});
+  await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "FAILED"});
   console.error(error.message);
 });
 
