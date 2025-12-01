@@ -31,6 +31,8 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
   const currentTime = new Date().getTime();
 
   async function deleteInvoice(invoice: InvoiceTableData){
+    if(!window.confirm(`Are you sure you want to delete Invoice ${invoice.originalFileName} with ID ${invoice.InvoiceId}?`))
+      return;
     //optimistic UI update with restoration on API failure.
     const {fileName} = invoice;
     setInvoiceTableData((invoices) => invoices?.filter((invoice) => invoice.fileName != fileName))
@@ -169,7 +171,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => {return invoice.InvoiceId ? navigator.clipboard.writeText(invoice.InvoiceId) : ""}}
+                onClick={async () => await copyText(invoice)}
               >
                 Copy Invoice ID
               </DropdownMenuItem>
@@ -187,4 +189,11 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
   ]
 
   return columns;
+}
+
+async function copyText(invoice: InvoiceTableData){
+  if(invoice.InvoiceId){
+    await navigator.clipboard.writeText(invoice.InvoiceId)
+    toast.success(`${invoice.InvoiceId} copied to clipboard.`)
+  }
 }
