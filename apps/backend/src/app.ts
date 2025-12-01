@@ -97,7 +97,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.set("Expires", "0");
   }
   if(req.method == "GET"){
-    if(req.path.startsWith("/refresh") || req.path.startsWith("/auth") || req.path.startsWith("/unprocessed-invoices")){
+    if(req.path.startsWith("/refresh") || req.path.startsWith("/auth") || req.path.startsWith("/invoices")){
       res.set("Cache-Control", "no-store, private");
     } else {
       res.set("Cache-Control", "max-age=300, must-revalidate")
@@ -116,14 +116,12 @@ import usersRouter from "./routes/usersRouter";
 import authRouter from "./routes/authRouter";
 import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
-import unprocessedInvoiceRouter from './routes/unprocessedInvoiceRouter';
 
 app.use(indexRouter);
 app.use(usersRouter);
 app.use(authRouter);
 app.use(refreshRouter);
 app.use(invoiceRouter);
-app.use(unprocessedInvoiceRouter);
 
 
 

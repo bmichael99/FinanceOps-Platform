@@ -61,7 +61,7 @@ function UploadInvoicePage() {
     );
     setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
     setFiles([]);
-    const response = await fetchPrivate({endpoint: "/unprocessed-invoices", method: "POST", bodyData: formData});
+    const response = await fetchPrivate({endpoint: "/invoices", method: "POST", bodyData: formData});
     if (response.ok) {
       console.log("Upload successful");
       const uploadResponse: FileResponseType[] = await response.json();
@@ -154,7 +154,7 @@ function UploadInvoicePage() {
 
   useEffect(() => {
     //SSE for file processing status updates
-    const evtSource = new EventSource(API_URL + '/unprocessed-invoices/status', {
+    const evtSource = new EventSource(API_URL + '/invoices/status', {
       withCredentials: true,
     });
     evtSource.addEventListener("fileStatus", (event) => {
@@ -177,7 +177,7 @@ function UploadInvoicePage() {
       try{
         const oneDayAgo = new Date(Date.now() - 1000*60*60*24);
         const view = "SUMMARY";
-        const response = await fetchPrivate({endpoint: `/unprocessed-invoices?since=${oneDayAgo}&view=${view}`, method: "GET", abortController: controller});
+        const response = await fetchPrivate({endpoint: `/invoices?since=${oneDayAgo}&view=${view}`, method: "GET", abortController: controller});
         if(response.ok){
           const recentUploadedFiles: FileResponseType[] = await response.json();
           console.log(recentUploadedFiles);

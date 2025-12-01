@@ -2,6 +2,12 @@
 
 export type ProcessingStatus = "PENDING" | "PROCESSING" | "SAVING" | "COMPLETED" | "FAILED";
 
+export type VerificationStatus = "UNVERIFIED" | "VERIFIED";
+
+export type InvoiceType = "ACCOUNTS_PAYABLE" | "ACCOUNTS_RECEIVABLE";
+
+export type PaymentStatus = "PAID" | "UNPAID";
+
 export type Role = "USER" | "ADMIN";
 
 export type Invoice = {
@@ -13,15 +19,16 @@ export type Invoice = {
   mimeType: string;
   filePath: string;
   currentProcessingStatus: ProcessingStatus;
+  verificationStatus: VerificationStatus;
   projectName: string | null;
-  invoiceType: string | null;
-  paymentStatus: string | null;
+  invoiceType: InvoiceType | null;
+  paymentStatus: PaymentStatus | null;
   CustomerName: string | null;
   CustomerId: string | null;
   PurchaseOrder: string | null;
   InvoiceId: string | null;
-  InvoiceDate: string | null;
-  DueDate: string | null;
+  InvoiceDate: Date | null;
+  DueDate: Date | null;
   VendorName: string | null;
   VendorAddress: string | null;
   VendorAddressRecipient: string | null;
@@ -34,7 +41,7 @@ export type Invoice = {
   SubTotal: string | null;
   TotalDiscount: string | null;
   TotalTax: string | null;
-  InvoiceTotal: string | null;
+  InvoiceTotal: number | null;
   AmountDue: string | null;
   PreviousUnpaidBalance: string | null;
   RemittanceAddress: string | null;
@@ -48,89 +55,6 @@ export type Invoice = {
   PaymentTerm: string | null;
   user?: User;
   userId: number;
-  invoiceTables?: InvoiceTable[];
-};
-
-export type InvoiceTable = {
-  id: number;
-  name: string | null;
-  invoiceTableDataAsMarkdown: string | null;
-  rowCount: number | null;
-  columnCount: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-  invoice?: Invoice;
-  invoiceId: number;
-};
-
-export type UnprocessedInvoice = {
-  id: number;
-  createdAt: Date;
-  updatedAt: Date;
-  fileName: string;
-  originalFileName: string;
-  mimeType: string;
-  filePath: string;
-  currentProcessingStatus: ProcessingStatus;
-  projectName: string | null;
-  invoiceType: string | null;
-  paymentStatus: string | null;
-  CustomerName: string | null;
-  CustomerId: string | null;
-  PurchaseOrder: string | null;
-  InvoiceId: string | null;
-  InvoiceDate: string | null;
-  DueDate: string | null;
-  VendorName: string | null;
-  VendorAddress: string | null;
-  VendorAddressRecipient: string | null;
-  CustomerAddress: string | null;
-  CustomerAddressRecipient: string | null;
-  BillingAddress: string | null;
-  BillingAddressRecipient: string | null;
-  ShippingAddress: string | null;
-  ShippingAddressRecipient: string | null;
-  SubTotal: string | null;
-  TotalDiscount: string | null;
-  TotalTax: string | null;
-  InvoiceTotal: string | null;
-  AmountDue: string | null;
-  PreviousUnpaidBalance: string | null;
-  RemittanceAddress: string | null;
-  RemittanceAddressRecipient: string | null;
-  ServiceAddress: string | null;
-  ServiceAddressRecipient: string | null;
-  ServiceStartDate: string | null;
-  ServiceEndDate: string | null;
-  VendorTaxId: string | null;
-  CustomerTaxId: string | null;
-  PaymentTerm: string | null;
-  fieldConfidences?: UnprocessedInvoiceFieldConfidence[];
-  invoiceTables?: UnprocessedInvoiceTable[];
-  user?: User;
-  userId: number;
-};
-
-export type UnprocessedInvoiceFieldConfidence = {
-  id: number;
-  fieldName: string;
-  confidence: number;
-  createdAt: Date;
-  updatedAt: Date;
-  invoice?: UnprocessedInvoice;
-  invoiceId: number;
-};
-
-export type UnprocessedInvoiceTable = {
-  id: number;
-  name: string | null;
-  invoiceTableDataAsMarkdown: string | null;
-  rowCount: number | null;
-  columnCount: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-  invoice?: UnprocessedInvoice;
-  invoiceId: number;
 };
 
 export type User = {
@@ -141,6 +65,5 @@ export type User = {
   role: Role;
   createdAt: Date;
   refreshToken: string | null;
-  unprocessedInvoices?: UnprocessedInvoice[];
   invoices?: Invoice[];
 };

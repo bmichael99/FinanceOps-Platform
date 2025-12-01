@@ -24,31 +24,47 @@ enum ProcessingStatus {
   PENDING // Waiting in queue, file already downloaded and saved to back-end server.
   PROCESSING // File popped from queue, begin processing.
   SAVING //File being sent to s3.
-  COMPLETED //File saved to s3 and data can now be accessed by the user. Move from UnprocessedInvoice -> Invoice
+  COMPLETED //File saved to s3 and data can now be accessed by the user. Waiting for verification after completion.
   FAILED //File failed during one of these steps.
 }
 
+enum VerificationStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+enum InvoiceType {
+  ACCOUNTS_PAYABLE
+  ACCOUNTS_RECEIVABLE
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 model Invoice {
-  id                            Int               @id @default(autoincrement())
-  createdAt                     DateTime          @default(now())
-  updatedAt                     DateTime          @updatedAt
+  id                            Int                @id @default(autoincrement())
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @updatedAt
 
-  fileName                      String            @unique
+  fileName                      String             @unique
   originalFileName              String
   mimeType                      String
   filePath                      String
-  currentProcessingStatus       ProcessingStatus  @default(PENDING)
+  currentProcessingStatus       ProcessingStatus   @default(PENDING)
+  verificationStatus            VerificationStatus @default(UNVERIFIED)
 
   projectName                   String?
-  invoiceType                   String?
-  paymentStatus                 String?
+  invoiceType                   InvoiceType?
+  paymentStatus                 PaymentStatus?
 
   CustomerName                  String?
   CustomerId                    String?
   PurchaseOrder                 String?
   InvoiceId                     String?
-  InvoiceDate                   String?
-  DueDate                       String?
+  InvoiceDate                   DateTime?
+  DueDate                       DateTime?
 
   VendorName                    String?
   VendorAddress                 String?
@@ -66,7 +82,7 @@ model Invoice {
   SubTotal                      String?
   TotalDiscount                 String?
   TotalTax                      String?
-  InvoiceTotal                  String?
+  InvoiceTotal                  Float?
   AmountDue                     String?
   PreviousUnpaidBalance         String?
 
@@ -85,107 +101,9 @@ model Invoice {
 
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
-  
-  invoiceTables InvoiceTable[]
-}
 
-model InvoiceTable {
-  id                          Int      @id @default(autoincrement())
-  name                        String?  //Optional table name or label
-  invoiceTableDataAsMarkdown  String?     //JSON array of cell objects with row/col info
-  rowCount                    Int?
-  columnCount                 Int?
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-  invoice                     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  invoiceId                   Int   // Foreign key to Invoice, if applicable
-}
-
-model UnprocessedInvoice {
-  id                            Int      @id @default(autoincrement())
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @updatedAt
-
-  fileName                      String    @unique
-  originalFileName              String
-  mimeType                      String
-  filePath                      String
-  currentProcessingStatus       ProcessingStatus  @default(PENDING)
-
-  projectName                   String?
-  invoiceType                   String?
-  paymentStatus                 String?
-
-  CustomerName                  String?
-  CustomerId                    String?
-  PurchaseOrder                 String?
-  InvoiceId                     String?
-  InvoiceDate                   String?
-  DueDate                       String?
-
-  VendorName                    String?
-  VendorAddress                 String?
-  VendorAddressRecipient        String?
-
-  CustomerAddress               String?
-  CustomerAddressRecipient      String?
-
-  BillingAddress                String?
-  BillingAddressRecipient       String?
-
-  ShippingAddress               String?
-  ShippingAddressRecipient      String?
-
-  SubTotal                      String?
-  TotalDiscount                 String?
-  TotalTax                      String?
-  InvoiceTotal                  String?
-  AmountDue                     String?
-  PreviousUnpaidBalance         String?
-
-  RemittanceAddress             String?
-  RemittanceAddressRecipient    String?
-
-  ServiceAddress                String?
-  ServiceAddressRecipient       String?
-
-  ServiceStartDate              String?
-  ServiceEndDate                String?
-
-  VendorTaxId                   String?
-  CustomerTaxId                 String?
-  PaymentTerm                   String?
-
-  fieldConfidences              UnprocessedInvoiceFieldConfidence[]
-  invoiceTables                 UnprocessedInvoiceTable[]
-
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-}
-
-model UnprocessedInvoiceFieldConfidence {
-  id           Int      @id @default(autoincrement())
-  fieldName    String   // e.g., "projectName", "invoiceTotal"
-  confidence   Float    // 0.0 - 1.0
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  invoice      UnprocessedInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  invoiceId    Int
-
-  @@index([invoiceId, fieldName])
-}
-
-model UnprocessedInvoiceTable {
-  id                          Int      @id @default(autoincrement())
-  name                        String?  //Optional table name or label
-  invoiceTableDataAsMarkdown  String?     //JSON array of cell objects with row/col info
-  rowCount                    Int?
-  columnCount                 Int?
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-  invoice                     UnprocessedInvoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  invoiceId                   Int   // Foreign key to Invoice, if applicable
+  @@index([userId, verificationStatus, currentProcessingStatus], name: "idx_invoice_user_verif_proc")
+  @@index([userId, createdAt], name: "idx_invoice_user_created")
 }
 
 enum Role {
@@ -202,6 +120,5 @@ model User{
   createdAt    DateTime   @default(now())
   refreshToken String?
 
-  unprocessedInvoices UnprocessedInvoice[]
   invoices            Invoice[]
 }
