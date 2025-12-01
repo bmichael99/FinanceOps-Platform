@@ -20,6 +20,8 @@ type useBrowseInvoiceColumnsType = {
 
 export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoiceColumnsType){
   const fetchPrivate = useFetchPrivate();
+  const thirtyDaysInMilliseconds = 30*24*60*60*1000;
+  const currentTime = new Date().getTime();
 
   async function deleteInvoice(invoice: InvoiceTableData){
     //optimistic UI update with restoration on API failure.
@@ -33,6 +35,13 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
       toast.error(`Failed to delete invoice ${invoice.InvoiceId}`)
       setInvoiceTableData((invoices) => {return invoices ? [...invoices, invoice] : [invoice]})
     }
+  }
+
+  function isWithin30Days(date: Date) : boolean{
+    if((currentTime - date.getTime()) <= thirtyDaysInMilliseconds){
+      return true;
+    }
+    return false;
   }
 
   const columns: ColumnDef<InvoiceTableData>[] = [
@@ -51,7 +60,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
         )
       },
       cell: ({row}) => {
-        const amount = row.original.InvoiceTotal && parseFloat(row.original.InvoiceTotal);
+        const amount = row.original.InvoiceTotal && row.original.InvoiceTotal;
         const formatted = amount && new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
@@ -89,6 +98,28 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
         return (
         <div className='pl-3'>
           {row.original.InvoiceDate ? new Date(row.original.InvoiceDate).toDateString() : "N/A"}
+        </div>
+        )
+      }
+    },
+    {
+      accessorKey: "DueDate",
+      header: ({ column }) => {
+        return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className='text-right'
+            >
+              Due Date
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        )
+      },
+      cell: ({row}) => {
+        return (
+        <div className={(row.original.DueDate && isWithin30Days(new Date(row.original.DueDate))) ? 'pl-3 text-red-600' : 'pl-3'} >
+          {row.original.DueDate ? new Date(row.original.DueDate).toDateString() : "N/A"}
         </div>
         )
       }
