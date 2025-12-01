@@ -3,6 +3,7 @@ dotenv.config();
 import path from "path";
 import * as db from "../repositories/invoiceRepository";
 import * as azure from "./Azure.js";
+import { stringToDate } from '../utils/dateParser';
 
 export async function processDocumentData(fileName){
   try{
@@ -19,6 +20,15 @@ export async function processDocumentData(fileName){
     if(documentFields){
       for (const [fieldName, fieldData] of Object.entries(documentFields)) {
         const content = fieldData?.content?.replace(/\n/g, ' ').trim();
+        
+        if(fieldName == "InvoiceTotal"){
+          fieldsData[fieldName] = parseFloat(fieldData?.content?.replace(/[$,]/g,""));
+          continue;
+        } else if (fieldName == "InvoiceDate" || fieldName == "DueDate"){
+          fieldsData[fieldName] = stringToDate(fieldData?.content);
+          continue;
+        }
+
         fieldsData[fieldName] = content;
       }
     }
