@@ -19,11 +19,14 @@ function ViewInvoicePage({}: Props) {
   useEffect(() => {
     async function getInvoiceData(){
       setLoadingInvoiceData(true);
-      const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}`, method:"GET"});
+      const verified = true;
+      const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}?verified=${verified}`, method:"GET"});
       if(response.ok){
         const data = await response.json();
         setInvoiceData(data);
         setLoadingInvoiceData(false);
+      } else {
+        navigate("/");
       }
     }
 
