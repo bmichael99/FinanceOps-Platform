@@ -61,7 +61,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
         return (
           <Tooltip>
             <TooltipTrigger>
-              <Button variant='ghost' onClick={() => navigate(`${row.original.fileName}`)}><SquareArrowOutUpRight /></Button>
+              <Button variant='ghost' onClick={async () => await navigate(`${row.original.fileName}`)}><SquareArrowOutUpRight /></Button>
             </TooltipTrigger>
             <TooltipContent>
               View/Edit Invoice
