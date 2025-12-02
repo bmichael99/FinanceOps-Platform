@@ -48,7 +48,7 @@ const invoiceItems = [
   },
   {
     title: "Create",
-    url: "#",
+    url: "/dashboard/invoices/create",
     icon: SquarePlus,
   },
 ]
