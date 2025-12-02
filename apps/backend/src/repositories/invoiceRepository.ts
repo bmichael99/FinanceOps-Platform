@@ -89,3 +89,9 @@ export const getuserIdByInvoiceId = async (invoiceId : string) => {
 
   return invoice;
 }
+
+export const getInvoiceCountWithFilters = async (filters: Prisma.InvoiceCountArgs) => {
+  const totalInvoices = await prisma.invoice.count(filters);
+
+  return totalInvoices;
+}
