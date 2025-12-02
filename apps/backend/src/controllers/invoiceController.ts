@@ -1,6 +1,6 @@
 import * as db from "../repositories/invoiceRepository";
 import {Request, Response} from "express";
-import {type InvoiceTableData} from "@finance-platform/types"
+import {type InvoiceTableData, type InvoiceDashboardSummaryType} from "@finance-platform/types"
 import { fileQueue } from "../config/redis";
 import { FileStatus, Invoice, ProcessingStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
 import { addClient, deleteClient, getClient } from "../utils/clientHandler";
@@ -353,3 +353,16 @@ export async function deleteInvoice(req: Request, res: Response) {
 //   await db.deleteInvoiceByInvoiceId(invoiceId);
 //   return res.sendStatus(200);
 // }
+
+export async function getInvoiceDashboardSummary(req: Request, res: Response) {
+  const totalVerifiedInvoices = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, verificationStatus: "VERIFIED"}});
+  const totalUnverifiedInvoices = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, verificationStatus: "UNVERIFIED"}});
+  if(!totalVerifiedInvoices && !totalUnverifiedInvoices){
+    return res.sendStatus(404); //not found
+  }
+  const totalInvoices: InvoiceDashboardSummaryType['totalInvoices'] = {unverified: totalUnverifiedInvoices, verified: totalVerifiedInvoices}
+  
+
+  const invoiceDashboardData: InvoiceDashboardSummaryType = {totalInvoices,};
+  return res.json(invoiceDashboardData)
+}
