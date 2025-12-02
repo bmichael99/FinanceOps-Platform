@@ -59,7 +59,7 @@ function LoginPage() {
     setAuth({accessToken: responseData.accessToken, user: responseData.user});
 
     if(response.status == 200){
-      navigate('/dashboard')
+      await navigate('/dashboard')
     }
     
   }

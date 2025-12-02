@@ -17,8 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { invoiceFormSchema, type InvoiceFormType } from '@finance-platform/schemas';
-import { useNavigate } from 'react-router-dom';
-import { toast } from "sonner"
 
 type Props = {
   invoiceId: string
@@ -29,8 +27,6 @@ type Props = {
 
 function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) {
   const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
-  const fetchPrivate = useFetchPrivate();
-  const navigate = useNavigate();
   const {register, handleSubmit, formState:{errors}} = useForm(
     //set default values to results from api request.
     

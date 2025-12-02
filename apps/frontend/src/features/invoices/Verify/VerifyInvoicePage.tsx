@@ -69,7 +69,7 @@ function VerifyInvoicePage({}: Props) {
     const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
     console.log(await response.json());
     if (response.status == 200){
-      navigate(0);
+      await navigate(0);
     }
   }
   
@@ -81,7 +81,7 @@ function VerifyInvoicePage({}: Props) {
 
     const response = await fetchPrivate({endpoint:`/invoices/${fileName}`, method:"delete"});
     if(response.ok){
-      navigate(0);
+      await navigate(0);
     } else {
       toast.error("Failed to delete invoice. Please try again later.");
     }

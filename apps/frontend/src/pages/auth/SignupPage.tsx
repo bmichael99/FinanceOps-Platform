@@ -41,7 +41,7 @@ function SignupPage() {
     console.log(response);
 
     if(response.status == 200){
-      navigate('/log-in')
+      await navigate('/log-in')
     }
     
   }

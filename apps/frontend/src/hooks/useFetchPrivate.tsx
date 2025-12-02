@@ -56,7 +56,7 @@ const useFetchPrivate = () => {
     } catch(err){
       console.error("Refresh failed or still unauthorized:", err);
       setAuth({});
-      navigate('/log-in');
+      await navigate('/log-in');
       throw err;
     }
 

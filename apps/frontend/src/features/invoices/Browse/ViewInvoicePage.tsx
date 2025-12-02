@@ -27,7 +27,7 @@ function ViewInvoicePage({}: Props) {
         setInvoiceData(data);
         setLoadingInvoiceData(false);
       } else {
-        navigate("/");
+        await navigate("/");
       }
     }
 
@@ -38,7 +38,7 @@ function ViewInvoicePage({}: Props) {
     const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
     console.log(await response.json());
     if (response.status == 200){
-      navigate(0);
+      await navigate(0);
     }
   }
 
@@ -50,7 +50,7 @@ function ViewInvoicePage({}: Props) {
 
     const response = await fetchPrivate({endpoint:`/invoices/${fileName}`, method:"delete"});
     if(response.ok){
-      navigate("/dashboard/invoices/browse");
+      await navigate("/dashboard/invoices/browse");
     } else {
       toast.error("Failed to delete invoice. Please try again later.");
     }
