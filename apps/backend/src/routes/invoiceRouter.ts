@@ -15,5 +15,7 @@ invoiceRouter.get("/invoices/:invoiceId/signed-url", passport.authenticate('jwt'
 invoiceRouter.get("/invoices/:invoiceId", passport.authenticate('jwt', {session: false}), invoiceController.getInvoice);
 invoiceRouter.post("/invoices/:invoiceId/verify", passport.authenticate('jwt', {session: false}), invoiceController.verifyInvoice);
 
+invoiceRouter.get("/invoices/dashboard/summary", passport.authenticate('jwt', {session: false}), invoiceController.getInvoiceDashboardSummary);
+
 export default invoiceRouter;
 
