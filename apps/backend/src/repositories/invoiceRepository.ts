@@ -95,3 +95,9 @@ export const getInvoiceCountWithFilters = async (filters: Prisma.InvoiceCountArg
 
   return totalInvoices;
 }
+
+export const getAllInvoicesUsingAggregate = async (args: Prisma.InvoiceAggregateArgs) => {
+  const totalInvoices = await prisma.invoice.aggregate(args);
+
+  return totalInvoices;
+}

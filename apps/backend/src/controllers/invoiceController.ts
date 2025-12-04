@@ -15,6 +15,7 @@ import dotenv from 'dotenv';
 import * as s3 from "../integrations/S3AWS";
 import { asyncHandler } from "../utils/asyncHandler";
 import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
+import prisma from "../config/prisma";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -355,14 +356,76 @@ export async function deleteInvoice(req: Request, res: Response) {
 // }
 
 export async function getInvoiceDashboardSummary(req: Request, res: Response) {
+  const currDate = new Date();
   const totalVerifiedInvoices = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, verificationStatus: "VERIFIED"}});
   const totalUnverifiedInvoices = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, verificationStatus: "UNVERIFIED"}});
+  
   if(!totalVerifiedInvoices && !totalUnverifiedInvoices){
     return res.sendStatus(404); //not found
   }
   const totalInvoices: InvoiceDashboardSummaryType['totalInvoices'] = {unverified: totalUnverifiedInvoices, verified: totalVerifiedInvoices}
-  
+  const next7daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
+  const next30daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
 
-  const invoiceDashboardData: InvoiceDashboardSummaryType = {totalInvoices,};
+  const next7daysDue = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+  const next30daysDue = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const pastDueCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
+  const pastDueAmount = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  //TODO: add in a date paid for these. Even though there's a due date it doesn't mean the payment was made on that due date.
+  const mtdRevenue = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const mtdRevenueUnpaid = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const invoiceDashboardData: InvoiceDashboardSummaryType = {
+    totalInvoices,
+    upcoming : {
+      next7days: {
+        count: next7daysCount,
+        amountDue: next7daysDue._sum?.InvoiceTotal ?? 0
+      },
+      next30days: {
+        count: next30daysCount,
+        amountDue: next30daysDue._sum?.InvoiceTotal ?? 0,
+      }
+    },
+    past:{
+      count: pastDueCount,
+      amountDue: pastDueAmount._sum?.InvoiceTotal ?? 0,
+    },
+    revenue:{
+      last30Days:0,
+      MTD: mtdRevenue._sum?.InvoiceTotal ?? 0,
+      last365Days:0,
+      YTD:0,
+      total:0,
+    }
+    };
   return res.json(invoiceDashboardData)
 }
