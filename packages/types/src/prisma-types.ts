@@ -22,7 +22,7 @@ export type Invoice = {
   verificationStatus: VerificationStatus;
   projectName: string | null;
   invoiceType: InvoiceType | null;
-  paymentStatus: PaymentStatus | null;
+  paymentStatus: PaymentStatus;
   CustomerName: string | null;
   CustomerId: string | null;
   PurchaseOrder: string | null;

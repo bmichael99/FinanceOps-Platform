@@ -57,7 +57,7 @@ model Invoice {
 
   projectName                   String?
   invoiceType                   InvoiceType?
-  paymentStatus                 PaymentStatus?
+  paymentStatus                 PaymentStatus      @default(UNPAID)
 
   CustomerName                  String?
   CustomerId                    String?
