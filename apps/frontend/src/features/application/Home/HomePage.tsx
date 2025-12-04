@@ -5,6 +5,10 @@ import { useNavigate } from 'react-router-dom'
 import EmptyTemplate from './EmptyTemplate';
 import { type InvoiceDashboardSummaryType } from '@finance-platform/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import UpcomingInvoices from './Card.UpcomingInvoices';
+import TotalRevenue from './Card.TotalRevenue';
+import PastDue from './Card.PastDue';
+import TotalProfit from './Card.TotalProfit';
 
 type Props = {}
 
@@ -56,7 +60,13 @@ function HomePage({}: Props) {
   }
   
   return (
-    <div>
+    <div className='my-4 flex justify-center'>
+      <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
+        <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
+        <PastDue pastDue={invoiceSummaryData.past}/>
+        <TotalRevenue />
+        <TotalProfit />
+      </div>
 
     </div>
   )
