@@ -266,6 +266,8 @@ export const verifyInvoice = asyncHandler(async (req: Request, res: Response) =>
     InvoiceTotal: invoiceFormData.InvoiceTotal ?? null,
     VendorAddress: invoiceFormData.VendorAddress ?? null,
     VendorName: invoiceFormData.VendorName,
+    invoiceType: invoiceFormData.invoiceType,
+    paymentStatus: invoiceFormData.paymentStatus,
   }
 
   const paramSchema = z.object({
@@ -364,25 +366,25 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     return res.sendStatus(404); //not found
   }
   const totalInvoices: InvoiceDashboardSummaryType['totalInvoices'] = {unverified: totalUnverifiedInvoices, verified: totalVerifiedInvoices}
-  const next7daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
-  const next30daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
+  const next7daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"}});
+  const next30daysCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"}});
 
   const next7daysDue = await db.getAllInvoicesUsingAggregate({
-    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 7*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
     _sum: {
       InvoiceTotal: true,
     }
   });
   const next30daysDue = await db.getAllInvoicesUsingAggregate({
-    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    where: {userId: req.user!.id, DueDate: {gte: currDate, lte: new Date(currDate.getTime() + 30*24*60*60*1000)}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
     _sum: {
       InvoiceTotal: true,
     }
   });
 
-  const pastDueCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"}});
+  const pastDueCount = await db.getInvoiceCountWithFilters({where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"}});
   const pastDueAmount = await db.getAllInvoicesUsingAggregate({
-    where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID"},
+    where: {userId: req.user!.id, DueDate: {lt: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
     _sum: {
       InvoiceTotal: true,
     }

@@ -11,7 +11,7 @@ export const invoiceFormSchema = z.object({
   }),
   DueDate: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.coerce.date().optional()
+    z.coerce.date()
   ),
   VendorName: z.string().min(1, {
     error: "Vendor Name is required"
@@ -20,6 +20,12 @@ export const invoiceFormSchema = z.object({
   CustomerAddress: z.string().optional(),
   InvoiceTotal: z.coerce.number().gte(0, {
     error: "Invoice total should be greater than or equal to 0"
+  }),
+  invoiceType: z.enum(['ACCOUNTS_PAYABLE', 'ACCOUNTS_RECEIVABLE'], {
+    error: "Invoice Type is required"
+  }),
+  paymentStatus: z.enum(['PAID','UNPAID'], {
+    error: "Payment Status is required"
   }),
 })
 

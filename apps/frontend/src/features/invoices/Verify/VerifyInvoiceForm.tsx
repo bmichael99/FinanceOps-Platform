@@ -1,7 +1,7 @@
 import useFetchPrivate from '@/hooks/useFetchPrivate';
 import React, { useEffect, useState } from 'react'
 import {type Invoice} from "@finance-platform/types"
-import { useForm, type SubmitHandler } from "react-hook-form"
+import { useForm, type SubmitHandler, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod";
 import {
@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { invoiceFormSchema, type InvoiceFormType } from '@finance-platform/schemas';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Props = {
   invoiceId: string
@@ -27,7 +28,7 @@ type Props = {
 
 function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) {
   const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
-  const {register, handleSubmit, formState:{errors}} = useForm(
+  const {register, control, handleSubmit, formState:{errors}} = useForm(
     //set default values to results from api request.
     
     {defaultValues: {
@@ -39,6 +40,8 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
         VendorAddress: invoiceData.VendorAddress ?? undefined,
         CustomerAddress: invoiceData.CustomerAddress ?? undefined,
         InvoiceTotal: invoiceData.InvoiceTotal || -1,
+        invoiceType: invoiceData.invoiceType ?? undefined,
+        paymentStatus: invoiceData.paymentStatus,
       },
     resolver: zodResolver(invoiceFormSchema)});
 
@@ -66,6 +69,11 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
               <Input {...register("InvoiceDate")} type="date" id="invoice-date" aria-invalid={errors.InvoiceDate && "true"}/>
               {errors.InvoiceDate && <FieldError>{errors.InvoiceDate.message}</FieldError>}
             </Field>
+            <Field data-invalid={errors.DueDate ? "true" : "false"}>
+              <FieldLabel htmlFor="due-date">Due Date</FieldLabel>
+              <Input {...register("DueDate")} type="date" id="due-date" aria-invalid={errors.DueDate && "true"}/>
+              {errors.DueDate && <FieldError>{errors.DueDate.message}</FieldError>}
+            </Field>
             <Field data-invalid={errors.VendorName ? "true" : "false"}>
               <FieldLabel htmlFor="vendor-name">Vendor Name</FieldLabel>
               <Input {...register("VendorName")} type="text" id="vendor-name" aria-invalid={errors.VendorName && "true"}/>
@@ -76,6 +84,46 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
               <Input {...register("CustomerName")} type="text" id="customer-name" aria-invalid={errors.CustomerName && "true"}/>
               {errors.CustomerName && <FieldError>{errors.CustomerName.message}</FieldError>}
             </Field>
+            <Field data-invalid={errors.invoiceType ? "true" : "false"}>
+              <FieldLabel htmlFor="invoice-type">Invoice Type</FieldLabel>
+              {/* <Input {...register("invoiceType")} type="text" id="invoice-type" aria-invalid={errors.invoiceType && "true"}/> */}
+              <Controller
+                name={"invoiceType"}
+                control={control}
+                render={({field}) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger >
+                    <SelectValue placeholder="Choose Invoice Type"/>
+                  </SelectTrigger>
+                  <SelectContent aria-invalid={errors.invoiceType && "true"}>
+                    <SelectItem value="ACCOUNTS_PAYABLE">Payable</SelectItem>
+                    <SelectItem value="ACCOUNTS_RECEIVABLE">Receivable</SelectItem>
+                  </SelectContent>
+                </Select>
+                )}
+              />
+              {errors.invoiceType && <FieldError>{errors.invoiceType.message}</FieldError>}
+            </Field>
+            <Field data-invalid={errors.paymentStatus ? "true" : "false"}>
+              <FieldLabel htmlFor="invoice-type">Payment Status</FieldLabel>
+              {/* <Input {...register("paymentStatus")} type="text" id="invoice-type" aria-invalid={errors.paymentStatus && "true"}/> */}
+              <Controller
+                name={"paymentStatus"}
+                control={control}
+                render={({field}) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger >
+                    <SelectValue placeholder="Choose Payment Status"/>
+                  </SelectTrigger>
+                  <SelectContent aria-invalid={errors.paymentStatus && "true"}>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    <SelectItem value="UNPAID">Unpaid</SelectItem>
+                  </SelectContent>
+                </Select>
+                )}
+              />
+              {errors.paymentStatus && <FieldError>{errors.paymentStatus.message}</FieldError>}
+            </Field>
           </FieldGroup>
         </FieldSet>
         <FieldSeparator />
@@ -84,11 +132,6 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
           <FieldLegend>Optional Fields</FieldLegend>
           <FieldDescription>Extra invoice information</FieldDescription>
           <FieldGroup className='grid grid-cols-2'>
-            <Field data-invalid={errors.DueDate ? "true" : "false"}>
-              <FieldLabel htmlFor="due-date">Due Date</FieldLabel>
-              <Input {...register("DueDate")} type="date" id="due-date" aria-invalid={errors.DueDate && "true"}/>
-              {errors.DueDate && <FieldError>{errors.DueDate.message}</FieldError>}
-            </Field>
             <Field data-invalid={errors.VendorAddress ? "true" : "false"}>
               <FieldLabel htmlFor="vendor-address">Vendor Address</FieldLabel>
               <Input {...register("VendorAddress")} type="text" id="vendor-address" aria-invalid={errors.VendorAddress && "true"}/>
