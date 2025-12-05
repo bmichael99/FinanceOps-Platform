@@ -29,8 +29,6 @@ function HomePage({}: Props) {
       const responseData: InvoiceDashboardSummaryType = await response.json();
       setInvoiceSummaryData(responseData);
       setLoadingInvoiceSummary(false);
-
-      console.log("get Invoice Summary: ", await response.json());
     }
     getInvoiceSummary();
   },[])
@@ -64,7 +62,7 @@ function HomePage({}: Props) {
       <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
         <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
         <PastDue pastDue={invoiceSummaryData.past}/>
-        <TotalRevenue />
+        <TotalRevenue revenue={invoiceSummaryData.revenue}/>
         <TotalProfit />
       </div>
 
