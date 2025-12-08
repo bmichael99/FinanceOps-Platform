@@ -15,7 +15,6 @@ import dotenv from 'dotenv';
 import * as s3 from "../integrations/S3AWS";
 import { asyncHandler } from "../utils/asyncHandler";
 import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
-import prisma from "../config/prisma";
 dotenv.config();
 
 export interface fileProcessingData {
