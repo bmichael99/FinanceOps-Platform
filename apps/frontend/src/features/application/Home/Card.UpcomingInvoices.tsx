@@ -26,7 +26,7 @@ function UpcomingInvoices({upcoming}: Props) {
           currency: "USD",
         }).format(upcoming.next30days.amountDue)
   return (
-    <Card className='w-[300px] border-l-4 border-l-yellow-300'>
+    <Card className='border-l-4 border-l-yellow-300'>
       <CardHeader>
         <CardTitle className='font-medium'>
           Upcoming Invoices

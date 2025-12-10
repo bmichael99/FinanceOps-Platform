@@ -13,7 +13,7 @@ function PastDue({pastDue}: Props) {
         currency: "USD",
       }).format(pastDue.amountDue)
   return (
-    <Card className='w-[300px] border-l-4 border-l-red-600'>
+    <Card className='border-l-4 border-l-red-600'>
       <CardHeader>
         <CardTitle className='font-medium'>
           Past Due
