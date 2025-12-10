@@ -397,8 +397,43 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
-  const mtdRevenueUnpaid = await db.getAllInvoicesUsingAggregate({
-    where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+  const mtdRevenueOwed = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const mtdExpenditure = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const totalRevenue = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const totalRevenueOwed = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const totalExpenditure = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
+    _sum: {
+      InvoiceTotal: true,
+    }
+  });
+
+  const totalExpenditureDue = await db.getAllInvoicesUsingAggregate({
+    where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
     _sum: {
       InvoiceTotal: true,
     }
@@ -421,11 +456,70 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
       amountDue: pastDueAmount._sum?.InvoiceTotal ?? 0,
     },
     revenue:{
-      last30Days:0,
-      MTD: mtdRevenue._sum?.InvoiceTotal ?? 0,
-      last365Days:0,
-      YTD:0,
-      total:0,
+      last30Days: {
+        amount: 0, 
+        amountOwed: 0
+      },
+      MTD: {
+        amount: mtdRevenue._sum?.InvoiceTotal ?? 0, 
+        amountOwed: 0
+      },
+      last365Days: {
+        amount: 0, 
+        amountOwed: 0
+      },
+      YTD: {
+        amount: 0, 
+        amountOwed: 0
+      },
+      total: {
+        amount: totalRevenue._sum?.InvoiceTotal ?? 0, 
+        amountOwed: totalRevenueOwed._sum?.InvoiceTotal ?? 0,
+      },
+    },
+    expenditure: {
+      last30Days: {
+        amount: 0, 
+        amountDue: 0
+      },
+      MTD: {
+        amount: 0, 
+        amountDue: 0
+      },
+      last365Days: {
+        amount: 0, 
+        amountDue: 0
+      },
+      YTD: {
+        amount: 0, 
+        amountDue: 0
+      },
+      total: {
+        amount: totalExpenditure._sum?.InvoiceTotal ?? 0, 
+        amountDue: totalExpenditureDue._sum?.InvoiceTotal ?? 0
+      },
+    },
+    profit: {
+      last30Days: {
+        amount: 0, 
+        projected: 0
+      }, //projected = (revenue.amount + revenue.amountOwed) - (expenditure.amount + expenditure.amountDue)
+      MTD: {
+        amount: (mtdRevenue._sum?.InvoiceTotal ?? 0) - (mtdExpenditure._sum?.InvoiceTotal ?? 0),
+        projected: 0,
+      },
+      last365Days: {
+        amount: 0, 
+        projected: 0,
+      },
+      YTD: {
+        amount: 0, 
+        projected: 0,
+      },
+      total: {
+        amount: (totalRevenue._sum?.InvoiceTotal ?? 0) - (totalExpenditure._sum?.InvoiceTotal ?? 0), 
+        projected: ((totalRevenue._sum?.InvoiceTotal ?? 0) + (totalRevenueOwed._sum?.InvoiceTotal ?? 0))- ((totalExpenditure._sum?.InvoiceTotal ?? 0) + (totalExpenditureDue._sum?.InvoiceTotal ?? 0)),
+      },
     }
     };
   return res.json(invoiceDashboardData)
