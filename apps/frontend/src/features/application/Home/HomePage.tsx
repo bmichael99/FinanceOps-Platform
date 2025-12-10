@@ -17,7 +17,6 @@ function HomePage({}: Props) {
   const [loadingInvoiceSummary, setLoadingInvoiceSummary] = useState(true);
   const [invoiceSummaryData, setInvoiceSummaryData] = useState<InvoiceDashboardSummaryType | null>(null);
 
-
   useEffect(() => {
     async function getInvoiceSummary(){
       setLoadingInvoiceSummary(true);
@@ -58,14 +57,17 @@ function HomePage({}: Props) {
   }
   
   return (
-    <div className='my-4 flex justify-center'>
-      <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
-        <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
-        <PastDue pastDue={invoiceSummaryData.past}/>
-        <TotalRevenue revenue={invoiceSummaryData.revenue}/>
-        <TotalProfit />
+    <div className='flex justify-center w-full'>
+      <div className='my-4 flex justify-center w-full max-w-7xl'>
+        {/*There is some weird interaction here where the grid container doesn't like when I set a max width on it, so we need 3 total containers.*/}
+        <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
+          <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
+          <PastDue pastDue={invoiceSummaryData.past}/>
+          <TotalRevenue revenue={invoiceSummaryData.revenue}/>
+          <TotalProfit profit={invoiceSummaryData.profit}/>
+        </div>
+        
       </div>
-
     </div>
   )
 }
