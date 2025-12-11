@@ -1,3 +1,15 @@
+import { Invoice } from "./prisma-types";
+export type InvoiceDailyChartData = Pick<Invoice, "DueDate" | "InvoiceTotal" | "paymentStatus">;
+export type InvoiceMonthlyChartData = {
+    month: string;
+    revenue: number;
+    projectedRevenue: number;
+    profit: number;
+    expenditure: number;
+};
+export type InvoiceChartData = {
+    last6Months: InvoiceMonthlyChartData[];
+};
 export type InvoiceDashboardSummaryType = {
     totalInvoices: {
         verified: number;
@@ -83,4 +95,5 @@ export type InvoiceDashboardSummaryType = {
             projected: number;
         };
     };
+    chartData: InvoiceChartData;
 };
