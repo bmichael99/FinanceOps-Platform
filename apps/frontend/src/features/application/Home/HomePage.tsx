@@ -9,6 +9,8 @@ import UpcomingInvoices from './Card.UpcomingInvoices';
 import TotalRevenue from './Card.TotalRevenue';
 import PastDue from './Card.PastDue';
 import TotalProfit from './Card.TotalProfit';
+import RevenueChart from './Chart.Revenue';
+import ProfitChart from './Chart.Profit';
 
 type Props = {}
 
@@ -58,7 +60,7 @@ function HomePage({}: Props) {
   
   return (
     <div className='flex justify-center w-full'>
-      <div className='my-4 flex justify-center w-full max-w-7xl'>
+      <div className='my-4 flex justify-center w-full max-w-7xl flex-col'>
         {/*There is some weird interaction here where the grid container doesn't like when I set a max width on it, so we need 3 total containers.*/}
         <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
           <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
@@ -66,6 +68,8 @@ function HomePage({}: Props) {
           <TotalRevenue revenue={invoiceSummaryData.revenue}/>
           <TotalProfit profit={invoiceSummaryData.profit}/>
         </div>
+        <RevenueChart chartData={invoiceSummaryData.chartData.last6Months}></RevenueChart>
+        <ProfitChart></ProfitChart>
         
       </div>
     </div>

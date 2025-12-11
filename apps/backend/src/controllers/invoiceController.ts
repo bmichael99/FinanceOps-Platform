@@ -1,6 +1,6 @@
 import * as db from "../repositories/invoiceRepository";
 import {Request, Response} from "express";
-import {type InvoiceTableData, type InvoiceDashboardSummaryType} from "@finance-platform/types"
+import {type InvoiceTableData, type InvoiceDashboardSummaryType, InvoiceDailyChartData} from "@finance-platform/types"
 import { fileQueue } from "../config/redis";
 import { FileStatus, Invoice, ProcessingStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
 import { addClient, deleteClient, getClient } from "../utils/clientHandler";
@@ -15,6 +15,8 @@ import dotenv from 'dotenv';
 import * as s3 from "../integrations/S3AWS";
 import { asyncHandler } from "../utils/asyncHandler";
 import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
+import prisma from "../config/prisma";
+import { getLastInvoiceSumsGroupedByMonth } from "../services/invoiceService";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -439,6 +441,7 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
+
   const invoiceDashboardData: InvoiceDashboardSummaryType = {
     totalInvoices,
     upcoming : {
@@ -520,6 +523,9 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
         amount: (totalRevenue._sum?.InvoiceTotal ?? 0) - (totalExpenditure._sum?.InvoiceTotal ?? 0), 
         projected: ((totalRevenue._sum?.InvoiceTotal ?? 0) + (totalRevenueOwed._sum?.InvoiceTotal ?? 0))- ((totalExpenditure._sum?.InvoiceTotal ?? 0) + (totalExpenditureDue._sum?.InvoiceTotal ?? 0)),
       },
+    },
+    chartData: {
+      last6Months: await getLastInvoiceSumsGroupedByMonth({monthCount: 6, userId: req.user!.id}), //just return all months and sort them by ranges in the front-end in the future.
     }
     };
   return res.json(invoiceDashboardData)
