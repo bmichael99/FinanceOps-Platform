@@ -3,6 +3,7 @@ dotenv.config();
 import { S3Client, S3ClientConfig, PutObjectCommand, PutObjectCommandInput, GetObjectCommand } from "@aws-sdk/client-s3";
 import fs from "fs";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { success } from "zod";
 
 
 //add typescript non-null asertion operators (!) to tell typescript
@@ -40,7 +41,7 @@ export async function uploadFile (fileName : string, filePath : string, mimeType
   return s3Response;
 }
 
-export async function getSignedURL (fileName: string){
+export async function getSignedURL (fileName: string): Promise<{signedURL: string, success: boolean}>{
   const getObjectParams : PutObjectCommandInput = {
     Bucket: bucketName,
     Key: fileName,
@@ -50,5 +51,10 @@ export async function getSignedURL (fileName: string){
 
 
     const url = await getSignedUrl(s3, command, { expiresIn: 960 });
-    return url;
+    console.log(url);
+    if(!url){
+      return {signedURL: url, success: false}
+    }
+
+    return {signedURL: url, success: true};
 }
