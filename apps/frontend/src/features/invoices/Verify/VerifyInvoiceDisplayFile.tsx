@@ -20,10 +20,14 @@ function VerifyInvoiceDisplayFile({invoiceId}: Props) {
     async function fetchSignedURL() {
       setLoadingSignedURL(true);
       const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/signed-url`, method: "GET", abortController: controller})
-      const data : getSignedURLResponseType = await response.json();
-      setSignedURL(data.signedURL);
-      setLoadingSignedURL(false);
-      console.log(data);
+      if(response.ok){
+        const data : getSignedURLResponseType = await response.json();
+        setSignedURL(data.signedURL);
+        setLoadingSignedURL(false);
+        console.log(data);
+      } else {
+        console.error("yo");
+      }
     }
 
     fetchSignedURL();
