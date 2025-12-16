@@ -18,9 +18,10 @@ export async function getLastInvoiceSumsGroupedByMonth({monthCount, userId, }: i
   let currentYear = currDate.getFullYear();
   let currentMonth = currDate.getMonth();
   for(let i = 0; i < monthCount; i++){
+    //currentMonth = monthIndex which is a number from 0-11 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     if(currentMonth < 0){
       currentYear -= 1;
-      currentMonth = 12;
+      currentMonth = 11;
     }
     
     const monthlyRevenuePromise = db.getAllInvoicesUsingAggregate({
@@ -45,15 +46,19 @@ export async function getLastInvoiceSumsGroupedByMonth({monthCount, userId, }: i
     const [monthlyRevenue, monthlyRevenueOwed, monthlyExpenditure] = await Promise.all([monthlyRevenuePromise,monthlyRevenueOwedPromise,monthlyExpenditurePromise])
 
     // const v = (t:any) => t._sum?.InvoiceTotal ?? 0;
-
+    
     invoiceData.push({
-      month: `${currentYear}-${currentMonth}`,
+      year: currentYear,
+      month: currentMonth+1,
+      formattedDate: new Date(currentYear,currentMonth).toLocaleString('default', {month: 'short'}) + " " + currentYear,
       revenue: monthlyRevenue._sum?.InvoiceTotal ?? 0,
       projectedRevenue: monthlyRevenueOwed._sum?.InvoiceTotal ?? 0,
       expenditure: monthlyExpenditure._sum?.InvoiceTotal ?? 0,
       profit: (monthlyRevenue._sum?.InvoiceTotal ?? 0) - (monthlyExpenditure._sum?.InvoiceTotal ?? 0),
     });
+    //increment current month
+    currentMonth--;
   }
-
+  invoiceData.reverse();
   return invoiceData;
 }

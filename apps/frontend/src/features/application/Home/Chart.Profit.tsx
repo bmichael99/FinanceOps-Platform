@@ -1,53 +1,54 @@
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis } from "recharts"
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { type ChartConfig } from "@/components/ui/chart"
+import type { InvoiceChartData, InvoiceMonthlyChartData } from "@finance-platform/types"
  
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-6)",
+  revenue: {
+    label: "Revenue",
+    color: "var(--chart-revenue)",
   },
-  mobile: {
-    label: "Mobile",
-    color: "#FF0000",
+  expenditure: {
+    label: "Expenses",
+    color: "var(--chart-expenditure)",
   },
 } satisfies ChartConfig
 
 type Props = {
-
+  chartData: InvoiceChartData['last6Months'];
 }
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
 
-function ProfitChart({}: Props) {
+
+function RevenueChart({chartData}: Props) {
+  console.log("chart data:" + JSON.stringify(chartData));
   return (
     <div>
     <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[350px] w-full">
       <AreaChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis
-          dataKey="month"
+          dataKey="formattedDate"
           tickLine={false}
           tickMargin={10}
           axisLine={false}
-          tickFormatter={(value) => value.slice(0, 3)}
+          tickFormatter={(value : string) => value}
         />
+        <YAxis 
+          tickMargin={10}
+          tickLine={false}
+          axisLine={false}
+        />
+
         <ChartTooltip content={<ChartTooltipContent indicator="dot"/>} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Area type="monotone" dataKey="desktop" fill="var(--color-desktop)"  />
-        <Area type="monotone" dataKey="mobile" fill="var(--color-mobile)" />
+        <Area type="monotone" dataKey="revenue" fill="var(--color-revenue)" stroke="var(--color-revenue)"/>
+        <Area type="monotone" dataKey="expenditure" fill="var(--color-expenditure)" stroke="var(--color-expenditure)"/>
       </AreaChart>
     </ChartContainer>
     </div>
   )
 }
 
-export default ProfitChart
+export default RevenueChart

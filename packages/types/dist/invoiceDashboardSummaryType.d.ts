@@ -1,7 +1,9 @@
 import { Invoice } from "./prisma-types";
 export type InvoiceDailyChartData = Pick<Invoice, "DueDate" | "InvoiceTotal" | "paymentStatus">;
 export type InvoiceMonthlyChartData = {
-    month: string;
+    year: number;
+    month: number;
+    formattedDate: string;
     revenue: number;
     projectedRevenue: number;
     profit: number;
