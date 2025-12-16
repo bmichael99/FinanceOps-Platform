@@ -440,7 +440,7 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
       InvoiceTotal: true,
     }
   });
-
+  const chartData6Months = await getLastInvoiceSumsGroupedByMonth({monthCount: 6, userId: req.user!.id});
 
   const invoiceDashboardData: InvoiceDashboardSummaryType = {
     totalInvoices,
@@ -525,8 +525,9 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
       },
     },
     chartData: {
-      last6Months: await getLastInvoiceSumsGroupedByMonth({monthCount: 6, userId: req.user!.id}), //just return all months and sort them by ranges in the front-end in the future.
+      last6Months: chartData6Months, //just return all months and sort them by ranges in the front-end in the future.
     }
     };
+
   return res.json(invoiceDashboardData)
 }
