@@ -1,0 +1,8 @@
+//SUM revenue for 2025-12
+SELECT SUM("InvoiceTotal") AS TotalRevenue
+FROM "Invoice"
+WHERE EXTRACT(YEAR FROM "DueDate") = 2025
+  AND EXTRACT(MONTH FROM "DueDate") = 12
+  AND "invoiceType" = 'ACCOUNTS_RECEIVABLE'
+  and "paymentStatus" = 'PAID'
+  and "verificationStatus" = 'VERIFIED';
