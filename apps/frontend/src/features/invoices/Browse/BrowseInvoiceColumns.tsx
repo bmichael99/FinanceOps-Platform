@@ -111,6 +111,13 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
     {
       accessorKey: "originalFileName",
       header: "File name",
+      cell: ({row}) => {
+        return (
+        <div className=''>
+          {row.original.originalFileName.slice(0,35) + (row.original.originalFileName.length > 35 ? "..." : "")}
+        </div>
+        )
+      },
     },
     {
       accessorKey: "InvoiceDate",
