@@ -16,7 +16,7 @@ function DashboardLayout({children}: {children?: React.ReactNode}) {
       we do no layout styling here other than w-full to force the
        main content to take up the rest of the screen, otherwise 
        a stupid ass wrapper takes up the screen*/}
-      <main className='w-full px-4'>
+      <main className='flex-1 min-w-0 px-4'>
         <Outlet />
         <Toaster />
       </main>
