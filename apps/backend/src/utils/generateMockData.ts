@@ -39,6 +39,7 @@ async function generateMockData({invoiceType, paymentStatus, recordCount} : Gene
         DueDate: new Date(randomYear,randomMonth,randomDay),
         InvoiceId: randomID,
         verificationStatus: "VERIFIED",
+        currentProcessingStatus: "COMPLETED",
         userId: 1,
       }
     })
