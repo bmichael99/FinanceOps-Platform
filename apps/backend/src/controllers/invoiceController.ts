@@ -108,6 +108,8 @@ export async function invoiceEvents(req: Request, res : Response){
 /**
  * Query Parameter options: 
  * since: Date object that's received as a string, returns all invoices greater than or equal to the date time provided. ex: ?since=new Date(Date.now() - 1000*60*60*24) will return invoices within the last 24 hours
+ * dueSince: same as since but for DueDate instead of createdAt
+ * dueBefore: same as dueSince but lte instead of gte
  * status: currentProcessingStatus filter, this is defined by the FileStatusType in the shared types. Current options are: UPLOADING, PENDING, PROCESSING, SAVING, COMPLETED, FAILED
  * view: sets the shape of the return data, determining what data is returned. Current options are summary: returns invoices as FileResponseType[] (shared type which includes fileName, originalFileName, status, and uploadTime(createdAt)). full: returns invoices as Invoice[] (all data returned by db, the full model for invoice). custom: returns the specified fields in fields query param only.
  * fields: Input as comma seperated values. If view type is set to custom then this endpoint will only return the specified fields. Possible fields reflect the prisma model. ex: ?fields=originalFileName,fileName,mimeType
@@ -118,6 +120,9 @@ export async function getInvoices(req: Request, res: Response){
   console.log(req.query);
   const QueryParamsSchema = z.object({
     since: z.string().optional(),
+    dueSince: z.string().optional(),
+    dueBefore: z.string().optional(),
+    paymentStatus: z.enum(["PAID", "UNPAID"]).optional(),
     status: z.enum(Object.keys(FileStatus)).optional(),
     verified: z.string().transform((s) => {
       if(s == "true") return true;
@@ -133,7 +138,7 @@ export async function getInvoices(req: Request, res: Response){
   }
 
   //extract query params from parsed params.
-  const {since, status, view, fields, verified} = result.data;
+  const {dueBefore, paymentStatus, dueSince, since, status, view, fields, verified} = result.data;
 
   //validate fields
   const FieldsSchema = z.array(z.enum(Prisma.InvoiceScalarFieldEnum));
@@ -148,8 +153,11 @@ export async function getInvoices(req: Request, res: Response){
   //set filters
   const filters: InvoiceFindManyType['where'] = { userId: req.user!.id };
   if (since) filters.createdAt = { gte: new Date(since) };
+  if (dueSince) filters.DueDate = { gte: new Date(dueSince) };
+  if (dueBefore) filters.DueDate = { lte: new Date(dueBefore) };
   if (status) filters.currentProcessingStatus = status as ProcessingStatus;
   if (verified !== undefined) filters.verificationStatus = verified ? "VERIFIED" : "UNVERIFIED";
+  if (paymentStatus) filters.paymentStatus = paymentStatus as Invoice['paymentStatus'];
 
   //query the db with filters
   const invoices = await db.getAllInvoicesWithFilters({where: filters});
