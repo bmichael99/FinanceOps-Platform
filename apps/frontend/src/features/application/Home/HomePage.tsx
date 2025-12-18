@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import useFetchPrivate from '@/hooks/useFetchPrivate'
 import { useNavigate } from 'react-router-dom'
 import EmptyTemplate from './EmptyTemplate';
-import { type InvoiceDashboardSummaryType } from '@finance-platform/types';
+import { type InvoiceDashboardSummaryType, type InvoiceTableData } from '@finance-platform/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import UpcomingInvoices from './Card.UpcomingInvoices';
 import TotalRevenue from './Card.TotalRevenue';
@@ -12,13 +12,21 @@ import TotalProfit from './Card.TotalProfit';
 import RevenueChart from './Chart.Revenue';
 import ProfitChart from './Chart.Profit';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import BrowseInvoiceDataTable from '@/features/invoices/Browse/BrowseInvoiceDataTable';
+import useGetManyInvoices from '@/api/useGetManyInvoices';
+import { useBrowseInvoiceColumns } from '@/features/invoices/Browse/BrowseInvoiceColumns';
+import PastDueTable from './Table.PastDue';
 
 type Props = {}
 
 function HomePage({}: Props) {
   const fetchPrivate = useFetchPrivate();
+  const getManyInvoices = useGetManyInvoices();
   const [loadingInvoiceSummary, setLoadingInvoiceSummary] = useState(true);
   const [invoiceSummaryData, setInvoiceSummaryData] = useState<InvoiceDashboardSummaryType | null>(null);
+  const [loadingInvoiceTableData, setloadingInvoiceTableData] = useState(true);
+  const [invoiceTableData, setInvoiceTableData] = useState<InvoiceTableData[]>();
+  const columns = useBrowseInvoiceColumns({setInvoiceTableData});
 
   useEffect(() => {
     async function getInvoiceSummary(){
@@ -33,6 +41,21 @@ function HomePage({}: Props) {
       setLoadingInvoiceSummary(false);
     }
     getInvoiceSummary();
+  },[])
+
+  useEffect(() => {
+    async function getInvoiceTableData(){
+      setloadingInvoiceTableData(true);
+      const response = await getManyInvoices({paymentStatus: 'UNPAID',dueBefore: new Date().toDateString(), status:'COMPLETED', verified: 'VERIFIED', view: 'CUSTOM', fields: ["fileName","originalFileName","InvoiceDate","InvoiceTotal","InvoiceId","DueDate"]})
+      if(!response.ok){
+        setloadingInvoiceTableData(false);
+        return;
+      }
+      const responseData: InvoiceTableData[] = await response.json();
+      setInvoiceTableData(responseData);
+      setloadingInvoiceTableData(false);
+    }
+    getInvoiceTableData();
   },[])
 
   if(loadingInvoiceSummary){
@@ -69,33 +92,16 @@ function HomePage({}: Props) {
           <TotalRevenue revenue={invoiceSummaryData.revenue}/>
           <TotalProfit profit={invoiceSummaryData.profit}/>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Revenue & Profit
-            </CardTitle>
-            <CardDescription>
-              Revenue and Profits in the last 6 months
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RevenueChart chartData={invoiceSummaryData.chartData.last6Months}></RevenueChart>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Revenue vs Expenses
-            </CardTitle>
-            <CardDescription>
-              Revenue vs Expenses in the last 6 months
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProfitChart chartData={invoiceSummaryData.chartData.last6Months}></ProfitChart>
-          </CardContent>
-        </Card>
+        
+       {loadingInvoiceTableData
+       ? <Skeleton></Skeleton> 
+       : (invoiceTableData && <PastDueTable columns={columns} invoiceTableData={invoiceTableData}></PastDueTable>)
+        }
+
+
+        <RevenueChart chartData={invoiceSummaryData.chartData.last6Months}></RevenueChart>
+        <ProfitChart chartData={invoiceSummaryData.chartData.last6Months}></ProfitChart>
         
         
       </div>
