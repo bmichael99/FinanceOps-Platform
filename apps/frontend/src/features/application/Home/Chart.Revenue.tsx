@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YA
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { type ChartConfig } from "@/components/ui/chart"
 import type { InvoiceChartData, InvoiceMonthlyChartData } from "@finance-platform/types"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
  
 const chartConfig = {
   revenue: {
@@ -17,6 +18,24 @@ const chartConfig = {
 
 type Props = {
   chartData: InvoiceChartData['last6Months'];
+}
+
+function RevenueChartCard({chartData}: Props){
+  return(
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>
+          Revenue & Profit
+        </CardTitle>
+        <CardDescription>
+          Revenue and Profits in the last 6 months
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <RevenueChart chartData={chartData}></RevenueChart>
+      </CardContent>
+    </Card>
+  )
 }
 
 
@@ -55,4 +74,4 @@ function RevenueChart({chartData}: Props) {
   )
 }
 
-export default RevenueChart
+export default RevenueChartCard
