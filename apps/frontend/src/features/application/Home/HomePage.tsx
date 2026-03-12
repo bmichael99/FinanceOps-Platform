@@ -93,16 +93,13 @@ function HomePage({}: Props) {
           <TotalProfit profit={invoiceSummaryData.profit}/>
         </div>
 
-        
-       {loadingInvoiceTableData
-       ? <Skeleton></Skeleton> 
-       : (invoiceTableData && <PastDueTable columns={columns} invoiceTableData={invoiceTableData}></PastDueTable>)
-        }
-
 
         <RevenueChart chartData={invoiceSummaryData.chartData.last6Months}></RevenueChart>
         <ProfitChart chartData={invoiceSummaryData.chartData.last6Months}></ProfitChart>
-        
+        {loadingInvoiceTableData
+       ? <Skeleton></Skeleton> 
+       : (invoiceTableData && <PastDueTable columns={columns} invoiceTableData={invoiceTableData}></PastDueTable>)
+        }
         
       </div>
     </div>
