@@ -16,10 +16,10 @@ function PastDueTable({invoiceTableData, columns}: Props) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle>
-          Revenue & Profit
+          Past Due Invoices - Payment Required
         </CardTitle>
         <CardDescription>
-          Revenue and Profits in the last 6 months
+          Bills you need to pay
         </CardDescription>
       </CardHeader>
       <CardContent>
