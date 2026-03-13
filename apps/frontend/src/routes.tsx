@@ -10,6 +10,7 @@ import BrowseInvoicePage from './features/invoices/Browse/BrowseInvoicePage'
 import ViewInvoicePage from './features/invoices/Browse/ViewInvoicePage'
 import HomePage from './features/application/Home/HomePage'
 import CreateInvoicePage from './features/invoices/Create/CreateInvoicePage'
+import { Navigate } from 'react-router-dom'
 
 const routes : any[] = [
   //unprotected routes
@@ -44,6 +45,10 @@ const routes : any[] = [
           {
             path: "invoices",
             children: [
+              {
+                index: true,
+                element: <Navigate to="browse" replace />,
+              },
               {
                 path:"upload",
                 Component: UploadInvoicePage,
