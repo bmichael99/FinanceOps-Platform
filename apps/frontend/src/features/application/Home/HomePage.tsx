@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import useFetchPrivate from '@/hooks/useFetchPrivate'
 import { useNavigate } from 'react-router-dom'
 import EmptyTemplate from './EmptyTemplate';
-import { type InvoiceDashboardSummaryType, type InvoiceTableData } from '@finance-platform/types';
+import { type InvoiceChartTypes, type InvoiceDashboardSummaryType, type InvoiceTableData } from '@finance-platform/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import UpcomingInvoices from './Card.UpcomingInvoices';
 import TotalRevenue from './Card.TotalRevenue';
@@ -16,6 +16,12 @@ import BrowseInvoiceDataTable from '@/features/invoices/Browse/BrowseInvoiceData
 import useGetManyInvoices from '@/api/useGetManyInvoices';
 import { useBrowseInvoiceColumns } from '@/features/invoices/Browse/BrowseInvoiceColumns';
 import PastDueTable from './Table.PastDue';
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+} from "@/components/ui/button-group"
+import { Button } from '@/components/ui/button';
 
 type Props = {}
 
@@ -26,6 +32,7 @@ function HomePage({}: Props) {
   const [invoiceSummaryData, setInvoiceSummaryData] = useState<InvoiceDashboardSummaryType | null>(null);
   const [loadingInvoiceTableData, setloadingInvoiceTableData] = useState(true);
   const [invoiceTableData, setInvoiceTableData] = useState<InvoiceTableData[]>();
+  const [timeRange, setTimeRange] = useState<keyof InvoiceChartTypes>("last30Days");
   const columns = useBrowseInvoiceColumns({setInvoiceTableData});
 
   useEffect(() => {
@@ -86,6 +93,16 @@ function HomePage({}: Props) {
     <div className='flex justify-center w-full'>
       <div className='my-4 flex justify-center w-full max-w-7xl flex-col gap-8'>
         {/*There is some weird interaction here where the grid container doesn't like when I set a max width on it, so we need 3 total containers.*/}
+        
+        {/* <div className='w-full flex justify-end'>
+        <ButtonGroup>
+          <Button variant={'outline'}>30d</Button>
+          <Button variant={'outline'}>90d</Button>
+          <Button variant={'outline'}>365d</Button>
+          <Button variant={'outline'}>all</Button>
+        </ButtonGroup>
+        </div> */}
+
         <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
           <UpcomingInvoices upcoming={invoiceSummaryData.upcoming}/>
           <PastDue pastDue={invoiceSummaryData.past}/>
@@ -94,8 +111,8 @@ function HomePage({}: Props) {
         </div>
 
 
-        <RevenueChart chartData={invoiceSummaryData.chartData.last6Months}></RevenueChart>
-        <ProfitChart chartData={invoiceSummaryData.chartData.last6Months}></ProfitChart>
+        <RevenueChart chartData={invoiceSummaryData.chartData[timeRange]} timeRange={timeRange} setTimeRange={setTimeRange}></RevenueChart>
+        <ProfitChart chartData={invoiceSummaryData.chartData[timeRange]}></ProfitChart>
         {loadingInvoiceTableData
        ? <Skeleton></Skeleton> 
        : (invoiceTableData && <PastDueTable columns={columns} invoiceTableData={invoiceTableData}></PastDueTable>)
