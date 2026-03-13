@@ -1,16 +1,15 @@
-import { Invoice } from "./prisma-types";
-export type InvoiceDailyChartData = Pick<Invoice, "DueDate" | "InvoiceTotal" | "paymentStatus">;
-export type InvoiceMonthlyChartData = {
-    year: number;
-    month: number;
+export type InvoiceChartData = {
     formattedDate: string;
     revenue: number;
-    projectedRevenue: number;
     profit: number;
     expenditure: number;
 };
-export type InvoiceChartData = {
-    last6Months: InvoiceMonthlyChartData[];
+export type InvoiceChartTypes = {
+    last30Days: InvoiceChartData[];
+    last90Days: InvoiceChartData[];
+    last6Months: InvoiceChartData[];
+    last12Months: InvoiceChartData[];
+    allTime: InvoiceChartData[];
 };
 export type InvoiceDashboardSummaryType = {
     totalInvoices: {
@@ -36,15 +35,11 @@ export type InvoiceDashboardSummaryType = {
             amount: number;
             amountOwed: number;
         };
-        MTD: {
+        last90Days: {
             amount: number;
             amountOwed: number;
         };
         last365Days: {
-            amount: number;
-            amountOwed: number;
-        };
-        YTD: {
             amount: number;
             amountOwed: number;
         };
@@ -58,15 +53,11 @@ export type InvoiceDashboardSummaryType = {
             amount: number;
             amountDue: number;
         };
-        MTD: {
+        last90Days: {
             amount: number;
             amountDue: number;
         };
         last365Days: {
-            amount: number;
-            amountDue: number;
-        };
-        YTD: {
             amount: number;
             amountDue: number;
         };
@@ -80,15 +71,11 @@ export type InvoiceDashboardSummaryType = {
             amount: number;
             projected: number;
         };
-        MTD: {
+        last90Days: {
             amount: number;
             projected: number;
         };
         last365Days: {
-            amount: number;
-            projected: number;
-        };
-        YTD: {
             amount: number;
             projected: number;
         };
@@ -97,5 +84,5 @@ export type InvoiceDashboardSummaryType = {
             projected: number;
         };
     };
-    chartData: InvoiceChartData;
+    chartData: InvoiceChartTypes;
 };

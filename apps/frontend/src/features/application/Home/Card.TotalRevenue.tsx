@@ -30,10 +30,10 @@ function TotalRevenue({revenue}: Props) {
     <Card className='border-l-4 border-l-blue-600'>
       <CardHeader>
         <CardTitle className='font-medium'>
-          Revenue <span className='text-muted-foreground text-sm font-normal'>(MTD)</span>
+          Revenue <span className='text-muted-foreground text-sm font-normal'>(30D)</span>
         </CardTitle>
         <CardTitle className='flex items-baseline gap-2'>
-          <span className='text-4xl'>{formattedRevenues.MTD.amount}</span>
+          <span className='text-4xl'>{formattedRevenues.last30Days.amount}</span>
           {/* <span className='text-muted-foreground text-sm font-normal'>invoice{upcoming.next30days.count !== 1 && 's'}</span> */}
         </CardTitle>
         <CardAction>
@@ -43,7 +43,7 @@ function TotalRevenue({revenue}: Props) {
       <CardContent className='flex flex-col'>
         {/*TODO: Add tool tip to explain what projected total is. It includes unpaid receivables.*/}
         <span className='text-muted-foreground text-sm font-normal'>Projected Total</span>
-        <span className='text-blue-600'>{formattedRevenues.MTD.amount}</span> 
+        <span className='text-blue-600'>{formattedRevenues.last30Days.amount}</span> 
         {/* <span className='text-muted-foreground text-sm font-normal'>due in the next 30 days</span> */}
         {/* <MySelect /> */}
       </CardContent>

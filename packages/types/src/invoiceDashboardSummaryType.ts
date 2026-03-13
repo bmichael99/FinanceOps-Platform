@@ -1,24 +1,28 @@
-import { Invoice } from "./prisma-types"
 
-export type InvoiceDailyChartData = Pick<Invoice, "DueDate" | "InvoiceTotal" | "paymentStatus">;
+// export type InvoiceDailyChartData = {
+//   formattedDate: string;
+//   revenue: number;
+//   profit: number;
+//   expenditure: number;
+// };
 
-export type InvoiceMonthlyChartData = {
-  year: number;
-  month: number;
+export type InvoiceChartData = {
+  // year: number;
+  // month: number;
   formattedDate: string;
   revenue: number;
-  projectedRevenue: number;
+  // projectedRevenue: number;
   profit: number;
   expenditure: number;
 }
 
 
-export type InvoiceChartData = {
-  // last90Days: InvoiceDailyChartData[];     // raw daily data
-  last6Months: InvoiceMonthlyChartData[];  // monthly aggregated
-  // last1Year: InvoiceMonthlyChartData[];    // monthly aggregated
-  // YTD: InvoiceMonthlyChartData[];          // monthly aggregated
-  // allTime: InvoiceMonthlyChartData[];      // monthly aggregated
+export type InvoiceChartTypes = {
+  last30Days: InvoiceChartData[];     // raw daily data
+  last90Days: InvoiceChartData[];     // raw daily data
+  last6Months: InvoiceChartData[];  // monthly aggregated
+  last12Months: InvoiceChartData[];    // monthly aggregated
+  allTime: InvoiceChartData[];      // monthly aggregated
 }
 
 export type InvoiceDashboardSummaryType = {
@@ -45,15 +49,11 @@ export type InvoiceDashboardSummaryType = {
       amount: number;
       amountOwed: number;
     };
-    MTD: {
+    last90Days: {
       amount: number;
       amountOwed: number;
     };
     last365Days: {
-      amount: number;
-      amountOwed: number;
-    };
-    YTD: {
       amount: number;
       amountOwed: number;
     };
@@ -67,15 +67,11 @@ export type InvoiceDashboardSummaryType = {
       amount: number;
       amountDue: number;
     };
-    MTD: {
+    last90Days: {
       amount: number;
       amountDue: number;
     };
     last365Days: {
-      amount: number;
-      amountDue: number;
-    };
-    YTD: {
       amount: number;
       amountDue: number;
     };
@@ -89,15 +85,11 @@ export type InvoiceDashboardSummaryType = {
       amount: number;
       projected: number;
     };
-    MTD: {
+    last90Days: {
       amount: number;
       projected: number;
     };
     last365Days: {
-      amount: number;
-      projected: number;
-    };
-    YTD: {
       amount: number;
       projected: number;
     };
@@ -106,7 +98,7 @@ export type InvoiceDashboardSummaryType = {
       projected: number;
     };
   };
-  chartData: InvoiceChartData;
+  chartData: InvoiceChartTypes;
 }
 
 

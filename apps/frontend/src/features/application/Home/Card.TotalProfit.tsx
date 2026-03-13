@@ -29,10 +29,10 @@ function TotalProfit({profit}: Props) {
     <Card className='border-l-4 border-l-green-600'>
       <CardHeader>
         <CardTitle className='font-medium'>
-          Profit <span className='text-muted-foreground text-sm font-normal'>(MTD)</span>
+          Profit <span className='text-muted-foreground text-sm font-normal'>(30D)</span>
         </CardTitle>
         <CardTitle className='flex items-baseline gap-2'>
-          <span className='text-4xl'>{formattedProfits.MTD.amount}</span>
+          <span className='text-4xl'>{formattedProfits.last30Days.amount}</span>
           {/* <span className='text-muted-foreground text-sm font-normal'>invoice{upcoming.next30days.count !== 1 && 's'}</span> */}
         </CardTitle>
         <CardAction>
@@ -42,7 +42,7 @@ function TotalProfit({profit}: Props) {
       <CardContent className='flex flex-col'>
         {/*TODO: Add tool tip to explain what projected total is. It includes unpaid receivables.*/}
         <span className='text-muted-foreground text-sm font-normal'>Projected Total</span>
-        <span className={`${profit.MTD.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>{formattedProfits.MTD.amount}</span> 
+        <span className={`${profit.last30Days.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>{formattedProfits.last30Days.amount}</span> 
         {/* <span className='text-muted-foreground text-sm font-normal'>due in the next 30 days</span> */}
         {/* <MySelect /> */}
       </CardContent>
