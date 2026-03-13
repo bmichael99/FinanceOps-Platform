@@ -2,8 +2,11 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YA
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { type ChartConfig } from "@/components/ui/chart"
-import type { InvoiceChartData, InvoiceMonthlyChartData } from "@finance-platform/types"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { InvoiceChartData, InvoiceChartTypes } from "@finance-platform/types"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from "react"
  
 const chartConfig = {
   revenue: {
@@ -16,11 +19,44 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-type Props = {
-  chartData: InvoiceChartData['last6Months'];
+type cardProps = {
+  chartData: InvoiceChartTypes['last6Months'];
+  timeRange: keyof InvoiceChartTypes;
+  setTimeRange: React.Dispatch<React.SetStateAction<keyof InvoiceChartTypes>>;
 }
 
-function RevenueChartCard({chartData}: Props){
+type chartProps = {
+  chartData: InvoiceChartTypes['last6Months'];
+}
+
+function RevenueChartCard({chartData, timeRange, setTimeRange}: cardProps){
+  const CHART_KEYS = {
+    last30Days: {
+      label: "30d",
+    },
+    last90Days: {
+      label: "90d",
+    },
+    last6Months: {
+      label: "180d",
+    },
+    last12Months: {
+      label: "365d",
+    },
+    allTime: {
+      label: "all",
+    },
+  } satisfies Record<keyof InvoiceChartTypes, {
+    label: string,
+  }>
+  const KEY_LIST = Object.entries(CHART_KEYS);
+
+  function updateTimeRange(value: keyof InvoiceChartTypes){
+    console.log(value);
+    if(!value) return; //will have an error without this when clicking a button that's already highlighted, "Toggle Group" shadcn component just sends an empty string as the value in that case.
+    setTimeRange(value);
+  }
+
   return(
     <Card className="w-full">
       <CardHeader>
@@ -30,6 +66,38 @@ function RevenueChartCard({chartData}: Props){
         <CardDescription>
           Revenue and Profits in the last 6 months
         </CardDescription>
+        <CardAction>
+          <ToggleGroup
+            type="single"
+            value={timeRange}
+            onValueChange={updateTimeRange}
+            variant="outline"
+            className="hidden lg:flex"
+          >
+            {KEY_LIST.map((key) => {
+              return (
+                <ToggleGroupItem value={key[0]} key={key[0]}>{key[1].label}</ToggleGroupItem>
+              )
+            })}
+          </ToggleGroup>
+          <Select value={timeRange} onValueChange={updateTimeRange}>
+            <SelectTrigger
+              className="flex w-40 lg:hidden"
+              size="sm"
+              aria-label="Select a value"
+            >
+              <SelectValue placeholder={KEY_LIST[0][1].label}/>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+
+              {KEY_LIST.map((key) => {
+              return (
+                <SelectItem className="rounded-lg" value={key[0]} key={key[0]}>{key[1].label}</SelectItem>
+              )
+            })}
+            </SelectContent>
+          </Select>
+        </CardAction>
       </CardHeader>
       <CardContent>
         <RevenueChart chartData={chartData}></RevenueChart>
@@ -40,8 +108,16 @@ function RevenueChartCard({chartData}: Props){
 
 
 
-function RevenueChart({chartData}: Props) {
-  console.log("chart data:" + JSON.stringify(chartData));
+function RevenueChart({chartData}: chartProps) {
+
+  if(chartData.length == 0){
+    return(
+      <div className="h-[350px] w-full flex justify-center items-center">
+        <p className="text-muted-foreground">No data</p>
+      </div>
+    )
+  }
+
   return (
     <div>
     <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[350px] w-full">

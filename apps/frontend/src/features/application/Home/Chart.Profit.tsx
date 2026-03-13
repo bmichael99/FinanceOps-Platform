@@ -2,7 +2,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Referen
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { type ChartConfig } from "@/components/ui/chart"
-import type { InvoiceChartData, InvoiceMonthlyChartData } from "@finance-platform/types"
+import type { InvoiceChartData, InvoiceChartTypes } from "@finance-platform/types"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
  
 const chartConfig = {
@@ -17,7 +17,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 type Props = {
-  chartData: InvoiceChartData['last6Months'];
+  chartData: InvoiceChartTypes['last6Months'];
 }
 
 function ProfitChartCard({chartData}: Props){
