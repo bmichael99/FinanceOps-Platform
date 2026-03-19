@@ -11,15 +11,6 @@ type Props = {
   upcoming: InvoiceDashboardSummaryType['upcoming']
 }
 
-function MySelect(){
-  return(
-  <NativeSelect className=''>
-      <NativeSelectOption value="thirtyDays">30 Days</NativeSelectOption>
-      <NativeSelectOption value="todo">7 Days</NativeSelectOption>
-  </NativeSelect>
-  )
-}
-
 function UpcomingInvoices({upcoming}: Props) {
   const formatted = upcoming.next30days.amountDue && new Intl.NumberFormat("en-US", {
           style: "currency",
