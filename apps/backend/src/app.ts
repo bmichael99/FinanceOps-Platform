@@ -88,6 +88,15 @@ const strategy = new JwtStrategy(options, async (payload,done) => {
 passport.use(strategy);
 
 /**
+ * Fake Delay
+ */
+
+app.use(async (_req,_res,next) => {
+  await delay(1000);
+  next();
+})
+
+/**
  *  -------------------- CACHE CONTROL --------------------
  */
 
@@ -116,6 +125,7 @@ import usersRouter from "./routes/usersRouter";
 import authRouter from "./routes/authRouter";
 import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
+import { delay } from './utils/delay';
 
 app.use(indexRouter);
 app.use(usersRouter);
