@@ -18,12 +18,13 @@ function TotalRevenue({revenue}: Props) {
     const newOwed = value && new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(value.amountOwed)
+        }).format(value.amountOwed + value.amount)
     
     const newValue = {amount: newAmount, amountOwed: newOwed}
     
     return [key,newValue];
   })
+
   const formattedRevenues: InvoiceDashboardSummaryType['revenue'] = Object.fromEntries(formattedRevenuesList);
 
   return (
@@ -43,7 +44,7 @@ function TotalRevenue({revenue}: Props) {
       <CardContent className='flex flex-col'>
         {/*TODO: Add tool tip to explain what projected total is. It includes unpaid receivables.*/}
         <span className='text-muted-foreground text-sm font-normal'>Projected Total</span>
-        <span className='text-blue-600'>{formattedRevenues.last30Days.amount}</span> 
+        <span className='text-blue-600'>{formattedRevenues.last30Days.amountOwed}</span> 
         {/* <span className='text-muted-foreground text-sm font-normal'>due in the next 30 days</span> */}
         {/* <MySelect /> */}
       </CardContent>

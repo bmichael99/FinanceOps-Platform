@@ -23,7 +23,7 @@ function TotalProfit({profit}: Props) {
       
       return [key,newValue];
     })
-    const formattedProfits: InvoiceDashboardSummaryType['revenue'] = Object.fromEntries(formattedProfitsList);
+    const formattedProfits: InvoiceDashboardSummaryType['profit'] = Object.fromEntries(formattedProfitsList);
 
   return (
     <Card className='border-l-4 border-l-green-600'>
@@ -42,7 +42,7 @@ function TotalProfit({profit}: Props) {
       <CardContent className='flex flex-col'>
         {/*TODO: Add tool tip to explain what projected total is. It includes unpaid receivables.*/}
         <span className='text-muted-foreground text-sm font-normal'>Projected Total</span>
-        <span className={`${profit.last30Days.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>{formattedProfits.last30Days.amount}</span> 
+        <span className={`${profit.last30Days.projected < 0 ? 'text-red-600' : 'text-green-600'}`}>{formattedProfits.last30Days.projected}</span> 
         {/* <span className='text-muted-foreground text-sm font-normal'>due in the next 30 days</span> */}
         {/* <MySelect /> */}
       </CardContent>
