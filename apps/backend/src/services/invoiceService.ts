@@ -1,5 +1,6 @@
 import * as db from "../repositories/invoiceRepository";
 import { Invoice, InvoiceChartData, InvoiceChartTypes } from "@finance-platform/types";
+import { Prisma } from "../generated/prisma";
 
 type monthInputs = {
   monthCount: number,
@@ -9,6 +10,11 @@ type monthInputs = {
 type dayInputs = {
   dayCount: number,
   userId: number,
+}
+
+type getInvoiceTotalByDaysType = Pick<Invoice,  "verificationStatus" | "paymentStatus" | "invoiceType" | "userId" > & {
+  days: number; //length of days into the past to fetch data
+  startDate: Date;
 }
 
 //returns sums of invoices grouped by months, ex: last 6 months
@@ -68,14 +74,16 @@ export async function getLastInvoiceSumsGroupedByMonth({monthCount, userId, }: m
 }
 
 export async function getLastInvoiceSumsGroupedByDay({dayCount, userId, }: dayInputs){
-  let currDate = new Date();
+  let ms24H = 24*60*60*1000;
+  let todayDate = new Date();
+  let currDate = new Date(todayDate.getTime() - (dayCount*ms24H));
 
   const invoiceData : InvoiceChartData[] = [];
   for(let i = 0; i < dayCount; i++){
     //currentMonth = monthIndex which is a number from 0-11 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     let currentYear = currDate.getFullYear();
     let currentMonth = currDate.getMonth();
-    let currentDay = currDate.getDay();
+    let currentDay = currDate.getDate();
     
     const dailyRevenuePromise = db.getAllInvoicesUsingAggregate({
       where: {userId , DueDate: {gte: new Date(Date.UTC(currentYear,currentMonth,currentDay,0,0,0,1)), lte: new Date(Date.UTC(currentYear,currentMonth,currentDay+1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
@@ -113,8 +121,21 @@ export async function getLastInvoiceSumsGroupedByDay({dayCount, userId, }: dayIn
     } 
     
     //decrease date by a day
-    currDate = new Date(currDate.getTime() - 24*60*60*1000);
+    currDate = new Date(currDate.getTime() + ms24H);
   }
-  invoiceData.reverse();
+  
   return invoiceData;
+}
+
+export async function getInvoiceTotalByDays({days, startDate = new Date(), invoiceType, paymentStatus, userId, verificationStatus} : getInvoiceTotalByDaysType){
+  const oneDayInMS = 24*60*60*1000;
+
+  const lastNDaysInvoiceTotal = await db.getAllInvoicesUsingAggregate({
+       where: {userId, DueDate: {gte: new Date(startDate.getTime() - days*oneDayInMS), lte: startDate}, verificationStatus,  paymentStatus,  invoiceType},
+       _sum: {
+         InvoiceTotal: true,
+      }
+  });
+
+  return lastNDaysInvoiceTotal;
 }
