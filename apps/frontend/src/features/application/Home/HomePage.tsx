@@ -32,7 +32,7 @@ function HomePage({}: Props) {
   const [invoiceSummaryData, setInvoiceSummaryData] = useState<InvoiceDashboardSummaryType | null>(null);
   const [loadingInvoiceTableData, setloadingInvoiceTableData] = useState(true);
   const [invoiceTableData, setInvoiceTableData] = useState<InvoiceTableData[]>();
-  const [timeRange, setTimeRange] = useState<keyof InvoiceChartTypes>("last30Days");
+  const [timeRange, setTimeRange] = useState<keyof InvoiceChartTypes>("last6Months");
   const columns = useBrowseInvoiceColumns({setInvoiceTableData});
 
   useEffect(() => {
@@ -65,9 +65,21 @@ function HomePage({}: Props) {
     getInvoiceTableData();
   },[])
 
-  if(loadingInvoiceSummary){
+  if(loadingInvoiceSummary || loadingInvoiceTableData){
     return(
-      <Skeleton></Skeleton>
+      <div className='flex justify-center w-full'>
+        <div className='my-4 flex justify-center w-full max-w-7xl flex-col gap-8'>
+          <div className='w-full grid auto-rows-fr grid-auto-fit-home gap-4'>
+            <Skeleton className='h-48'></Skeleton>
+            <Skeleton className='h-48'></Skeleton>
+            <Skeleton className='h-48'></Skeleton>
+            <Skeleton className='h-48'></Skeleton>
+          </div>
+            <Skeleton className='h-[450px]'></Skeleton>
+            <Skeleton className='h-[450px]'></Skeleton>
+            <Skeleton className='h-[450px]'></Skeleton>
+        </div>
+      </div>
     )
   } else if(!invoiceSummaryData){
     return(
