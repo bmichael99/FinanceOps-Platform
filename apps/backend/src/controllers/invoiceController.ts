@@ -66,7 +66,7 @@ export async function createInvoice(req : Request, res : Response) {
     db.createInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'})
   ))
 
-  await delay(3000);
+  // await delay(3000);
 
   const fileResponse: FileResponseType[] = [];
 
@@ -495,6 +495,13 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
+  const last30DaysRevenueOwed = await db.getAllInvoicesUsingAggregate({
+     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 30*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
+     _sum: {
+       InvoiceTotal: true,
+    }
+    });
+
   const totalRevenueOwed = await db.getAllInvoicesUsingAggregate({
     where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
     _sum: {
@@ -516,10 +523,14 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
-  const chartData30Days = await getLastInvoiceSumsGroupedByDay({dayCount: 30, userId: req.user!.id});
-  const chartData90Days = await getLastInvoiceSumsGroupedByDay({dayCount: 90, userId: req.user!.id});
-  const chartData6Months = await getLastInvoiceSumsGroupedByMonth({monthCount: 6, userId: req.user!.id});
-  const chartData12Months = await getLastInvoiceSumsGroupedByMonth({monthCount: 12, userId: req.user!.id});
+    const chartData30DaysP = getLastInvoiceSumsGroupedByDay({dayCount: 30, userId: req.user!.id});
+    const chartData90DaysP = getLastInvoiceSumsGroupedByDay({dayCount: 90, userId: req.user!.id});
+    const chartData6MonthsP = getLastInvoiceSumsGroupedByMonth({monthCount: 6, userId: req.user!.id});
+    const chartData12MonthsP = getLastInvoiceSumsGroupedByMonth({monthCount: 12, userId: req.user!.id});
+
+    const [chartData30Days,chartData90Days,chartData6Months,chartData12Months] = await Promise.all([chartData30DaysP,chartData90DaysP,chartData6MonthsP,chartData12MonthsP]);
+    
+
 
   const invoiceDashboardData: InvoiceDashboardSummaryType = {
     totalInvoices,
@@ -540,7 +551,7 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     revenue:{
       last30Days: {
         amount: last30DaysRevenue._sum?.InvoiceTotal ?? 0, 
-        amountOwed: 0
+        amountOwed: last30DaysRevenueOwed._sum?.InvoiceTotal ?? 0,
       },
       last90Days: {
         amount: last90DaysRevenue._sum?.InvoiceTotal ?? 0, 
@@ -576,7 +587,7 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     profit: {
       last30Days: {
         amount: (last30DaysRevenue._sum?.InvoiceTotal ?? 0) - (last30DaysExpenditure._sum?.InvoiceTotal ?? 0), 
-        projected: 0
+        projected: (last30DaysRevenue._sum?.InvoiceTotal ?? 0) + (last30DaysRevenueOwed._sum?.InvoiceTotal ?? 0) - (last30DaysExpenditure._sum?.InvoiceTotal ?? 0),
       }, //projected = (revenue.amount + revenue.amountOwed) - (expenditure.amount + expenditure.amountDue)
       last90Days: {
         amount: (last90DaysRevenue._sum?.InvoiceTotal ?? 0) - (last90DaysExpenditure._sum?.InvoiceTotal ?? 0),
@@ -602,3 +613,4 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
 
   return res.json(invoiceDashboardData)
 }
+
