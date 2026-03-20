@@ -7,11 +7,12 @@ type Props = {
   since?: string,
   dueSince?: string,
   dueBefore?: string,
+  invoiceType?: Invoice['invoiceType'],
   paymentStatus?: Invoice['paymentStatus'],
   status?: FileStatusType,
   verified?: Invoice['verificationStatus'],
   view?: "SUMMARY" | "FULL" | "CUSTOM",
-  fields?: (keyof Invoice)[]
+  fields?: (keyof Invoice)[],
 }
 
 /**
@@ -27,11 +28,12 @@ type Props = {
 function useGetManyInvoices() {
   const fetchPrivate = useFetchPrivate();
 
-  async function getManyInvoices({abortController, dueSince, dueBefore, since, paymentStatus, status, verified, view, fields}: Props){
+  async function getManyInvoices({abortController, dueSince, dueBefore, since, invoiceType, paymentStatus, status, verified, view, fields}: Props){
     const params = new URLSearchParams();
     if (since !== undefined) params.set("since", since);
     if (dueSince !== undefined) params.set("dueSince", dueSince);
     if (dueBefore !== undefined) params.set("dueBefore", dueBefore);
+    if (invoiceType !== undefined && invoiceType !== null) params.set("invoiceType", invoiceType);
     if (paymentStatus !== undefined) params.set("paymentStatus", paymentStatus);
     if (status !== undefined) params.set("status", status);
     if (verified !== undefined) params.set("verified", String(verified));

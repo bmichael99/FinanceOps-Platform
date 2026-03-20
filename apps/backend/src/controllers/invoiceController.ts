@@ -117,11 +117,11 @@ export async function invoiceEvents(req: Request, res : Response){
  */ 
 export async function getInvoices(req: Request, res: Response){
   //define zod schema for parsing query params. This allows us to validate our query params.
-  console.log(req.query);
   const QueryParamsSchema = z.object({
     since: z.string().optional(),
     dueSince: z.string().optional(),
     dueBefore: z.string().optional(),
+    invoiceType: z.enum(["ACCOUNTS_PAYABLE", "ACCOUNTS_RECEIVABLE"]).optional(),
     paymentStatus: z.enum(["PAID", "UNPAID"]).optional(),
     status: z.enum(Object.keys(FileStatus)).optional(),
     verified: z.string().transform((s) => {
@@ -138,7 +138,7 @@ export async function getInvoices(req: Request, res: Response){
   }
 
   //extract query params from parsed params.
-  const {dueBefore, paymentStatus, dueSince, since, status, view, fields, verified} = result.data;
+  const {dueBefore, paymentStatus, dueSince, invoiceType, since, status, view, fields, verified} = result.data;
 
   //validate fields
   const FieldsSchema = z.array(z.enum(Prisma.InvoiceScalarFieldEnum));
@@ -158,6 +158,7 @@ export async function getInvoices(req: Request, res: Response){
   if (status) filters.currentProcessingStatus = status as ProcessingStatus;
   if (verified !== undefined) filters.verificationStatus = verified ? "VERIFIED" : "UNVERIFIED";
   if (paymentStatus) filters.paymentStatus = paymentStatus as Invoice['paymentStatus'];
+  if (invoiceType) filters.invoiceType = invoiceType as Invoice['invoiceType'];
 
   //query the db with filters
   const invoices = await db.getAllInvoicesWithFilters({where: filters});
