@@ -33,26 +33,31 @@ function RevenueChartCard({chartData, timeRange, setTimeRange}: cardProps){
   const CHART_KEYS = {
     last30Days: {
       label: "30d",
+      description: "in the last 30 days",
     },
     last90Days: {
       label: "90d",
+      description: "in the last 90 days",
     },
     last6Months: {
       label: "180d",
+      description: "in the last 180 days",
     },
     last12Months: {
       label: "365d",
+      description: "in the last year",
     },
     allTime: {
       label: "all",
+      description: "for all time",
     },
   } satisfies Record<keyof InvoiceChartTypes, {
     label: string,
+    description: string,
   }>
   const KEY_LIST = Object.entries(CHART_KEYS);
 
   function updateTimeRange(value: keyof InvoiceChartTypes){
-    console.log(value);
     if(!value) return; //will have an error without this when clicking a button that's already highlighted, "Toggle Group" shadcn component just sends an empty string as the value in that case.
     setTimeRange(value);
   }
@@ -64,7 +69,7 @@ function RevenueChartCard({chartData, timeRange, setTimeRange}: cardProps){
           Revenue & Profit
         </CardTitle>
         <CardDescription>
-          Revenue and Profits in the last 6 months
+          Revenue and Profits {CHART_KEYS[timeRange].description}.
         </CardDescription>
         <CardAction>
           <ToggleGroup

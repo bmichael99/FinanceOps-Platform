@@ -25,10 +25,10 @@ function ProfitChartCard({chartData}: Props){
     <Card className="w-full">
       <CardHeader>
         <CardTitle>
-          Revenue & Profit
+          Revenue vs Expenses
         </CardTitle>
         <CardDescription>
-          Revenue and Profits in the last 6 months
+          Revenue vs Expenses in the last 6 months
         </CardDescription>
       </CardHeader>
       <CardContent>

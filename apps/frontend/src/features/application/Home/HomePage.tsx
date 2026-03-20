@@ -122,9 +122,9 @@ function HomePage({}: Props) {
           <TotalProfit profit={invoiceSummaryData.profit}/>
         </div>
 
-
         <RevenueChart chartData={invoiceSummaryData.chartData[timeRange]} timeRange={timeRange} setTimeRange={setTimeRange}></RevenueChart>
         <ProfitChart chartData={invoiceSummaryData.chartData[timeRange]}></ProfitChart>
+
         {loadingInvoiceTableData
        ? <Skeleton></Skeleton> 
        : (invoiceTableData && <PastDueTable columns={columns} invoiceTableData={invoiceTableData}></PastDueTable>)
