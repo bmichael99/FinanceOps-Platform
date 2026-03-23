@@ -1,3 +1,4 @@
+import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
 import {type Job, JobProgress, Worker} from 'bullmq';
@@ -6,7 +7,7 @@ import { type fileProcessingData } from '../controllers/invoiceController';
 import * as db from "../repositories/invoiceRepository";
 import IORedis from 'ioredis';
 import { uploadFile } from '../integrations/S3AWS';
-import path from "path";
+
 import fs from "fs";
 import { delay } from '../utils/delay';
 
@@ -28,7 +29,7 @@ const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
 
   // //send file to s3 after processing is finished.
   const filePath = path.join(__dirname, "../../uploads/", data.fileName);
-  const s3Response = await uploadFile(data.fileName, filePath, storeInvoice.mimeType);
+  await uploadFile(data.fileName, filePath, storeInvoice.mimeType);
   await fs.promises.unlink(filePath);
   await delay(1500); //for testing only, remove when uncommenting everything else.
 
