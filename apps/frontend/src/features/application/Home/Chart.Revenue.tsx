@@ -34,26 +34,32 @@ function RevenueChartCard({chartData, timeRange, setTimeRange}: cardProps){
     last30Days: {
       label: "30d",
       description: "in the last 30 days",
+      selectLabel: "1 Month",
     },
     last90Days: {
       label: "90d",
       description: "in the last 90 days",
+      selectLabel: "3 Months",
     },
     last6Months: {
       label: "180d",
       description: "in the last 180 days",
+      selectLabel: "6 Months",
     },
     last12Months: {
       label: "365d",
       description: "in the last year",
+      selectLabel: "12 Months",
     },
     allTime: {
       label: "all",
       description: "for all time",
+      selectLabel: "All time",
     },
   } satisfies Record<keyof InvoiceChartTypes, {
     label: string,
     description: string,
+    selectLabel: string,
   }>
   const KEY_LIST = Object.entries(CHART_KEYS);
 
@@ -97,7 +103,7 @@ function RevenueChartCard({chartData, timeRange, setTimeRange}: cardProps){
 
               {KEY_LIST.map((key) => {
               return (
-                <SelectItem className="rounded-lg" value={key[0]} key={key[0]}>{key[1].label}</SelectItem>
+                <SelectItem className="rounded-lg" value={key[0]} key={key[0]}>{key[1].selectLabel}</SelectItem>
               )
             })}
             </SelectContent>
