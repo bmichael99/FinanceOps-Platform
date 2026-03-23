@@ -1,3 +1,4 @@
+import path from "path"; //node module for handling paths
 import dotenv from 'dotenv';
 dotenv.config();
 import prisma from "./config/prisma";
@@ -12,14 +13,13 @@ import { MulterError } from "multer";
 
 //imports the express framework
 import express from "express";
-//node module for handling paths
-import path from "path";
+
 //initalizes the express application
 const app = express();
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:4173'], // your frontend URL here
-  credentials: true,               // enable Set-Cookie and other credentials
+  origin: ['http://localhost:5173', 'http://localhost:4173'], //frontend URL here
+  credentials: true,               //enable Set-Cookie and other credentials
 };
 app.use(cors(corsOptions));
 
