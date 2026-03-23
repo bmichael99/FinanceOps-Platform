@@ -14,8 +14,10 @@ type dayInputs = {
 
 type getInvoiceTotalByDaysType = Pick<Invoice,  "verificationStatus" | "paymentStatus" | "invoiceType" | "userId" > & {
   days: number; //length of days into the past to fetch data
-  startDate: Date;
+  startDate?: Date;
 }
+
+type getTotalType = {days: number, userId: Invoice['userId']}
 
 //returns sums of invoices grouped by months, ex: last 6 months
 //need to make this function again but grouped by days.
@@ -137,5 +139,25 @@ export async function getInvoiceTotalByDays({days, startDate = new Date(), invoi
       }
   });
 
-  return lastNDaysInvoiceTotal;
+  return lastNDaysInvoiceTotal._sum?.InvoiceTotal ?? 0;
+}
+//TODO add days option to be string but only string of "all"
+export async function getExpenditureTotal({days, userId} : getTotalType){
+  const invoiceTotal = await getInvoiceTotalByDays({days, invoiceType: "ACCOUNTS_PAYABLE", paymentStatus: "PAID", userId, verificationStatus:"VERIFIED"});
+  return invoiceTotal;
+}
+
+export async function getExpenditureDueTotal({days, userId} : getTotalType){
+  const invoiceTotal = await getInvoiceTotalByDays({days, invoiceType: "ACCOUNTS_PAYABLE", paymentStatus: "UNPAID", userId, verificationStatus:"VERIFIED"});
+  return invoiceTotal;
+}
+
+export async function getRevenueTotal({days, userId} : getTotalType){
+  const invoiceTotal = await getInvoiceTotalByDays({days, invoiceType: "ACCOUNTS_RECEIVABLE", paymentStatus: "PAID", userId, verificationStatus:"VERIFIED"});
+  return invoiceTotal;
+}
+
+export async function getRevenueOwedTotal({days, userId} : getTotalType){
+  const invoiceTotal = await getInvoiceTotalByDays({days, invoiceType: "ACCOUNTS_RECEIVABLE", paymentStatus: "UNPAID", userId, verificationStatus:"VERIFIED"});
+  return invoiceTotal;
 }

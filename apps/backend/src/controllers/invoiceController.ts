@@ -17,6 +17,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
 import prisma from "../config/prisma";
 import { getLastInvoiceSumsGroupedByMonth, getLastInvoiceSumsGroupedByDay } from "../services/invoiceService";
+import * as service from "../services/invoiceService";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -401,93 +402,24 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
-  //TODO: add in a date paid for these. Even though there's a due date it doesn't mean the payment was made on that due date.
-  // const mtdRevenue = await db.getAllInvoicesUsingAggregate({
-  //   where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-  //   _sum: {
-  //     InvoiceTotal: true,
-  //   }
-  // });
+    const last30DaysExpenditure = await service.getExpenditureTotal({days: 30, userId: req.user!.id});
+    const last90DaysExpenditure = await service.getExpenditureTotal({days: 90, userId: req.user!.id});
+    const last180DaysExpenditure = await service.getExpenditureTotal({days: 180, userId: req.user!.id});
+    const last365DaysExpenditure = await service.getExpenditureTotal({days: 365, userId: req.user!.id});
 
-  // const mtdRevenueOwed = await db.getAllInvoicesUsingAggregate({
-  //   where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-  //   _sum: {
-  //     InvoiceTotal: true,
-  //   }
-  // });
-
-  // const mtdExpenditure = await db.getAllInvoicesUsingAggregate({
-  //   where: {userId: req.user!.id, DueDate: {gte: new Date(Date.UTC(currDate.getFullYear(),currDate.getMonth(),1,0,0,0,0))}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
-  //   _sum: {
-  //     InvoiceTotal: true,
-  //   }
-  // });
-  /**
-   * Expenditure
-   */
-
-    const last30DaysExpenditure = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 30*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-    const last90DaysExpenditure = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 90*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-    const last365DaysExpenditure = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 365*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-
-    const last30DaysExpenditureOwed = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 365*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-
-    const last90DaysExpenditureOwed = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 365*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-
-    const last365DaysExpenditureOwed = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 365*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_PAYABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
+    const last30DaysExpenditureDue = await service.getExpenditureDueTotal({days: 30, userId: req.user!.id});
+    const last90DaysExpenditureDue = await service.getExpenditureDueTotal({days: 90, userId: req.user!.id});
+    const last180DaysExpenditureDue = await service.getExpenditureDueTotal({days: 180, userId: req.user!.id});
+    const last365DaysExpenditureDue = await service.getExpenditureDueTotal({days: 365, userId: req.user!.id});
 
   /**
    * Revenue
    */
 
-    const last30DaysRevenue = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 30*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-    const last90DaysRevenue = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 90*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
-    const last365DaysRevenue = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 365*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
+    const last30DaysRevenue = await service.getRevenueTotal({days: 30, userId: req.user!.id});
+    const last90DaysRevenue = await service.getRevenueTotal({days: 90, userId: req.user!.id});
+    const last180DaysRevenue = await service.getRevenueTotal({days: 180, userId: req.user!.id});
+    const last365DaysRevenue = await service.getRevenueTotal({days: 365, userId: req.user!.id});
 
   const totalRevenue = await db.getAllInvoicesUsingAggregate({
     where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "PAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
@@ -496,12 +428,10 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     }
   });
 
-  const last30DaysRevenueOwed = await db.getAllInvoicesUsingAggregate({
-     where: {userId: req.user!.id, DueDate: {gte: new Date(currDate.getTime() - 30*24*60*60*1000), lte: currDate}, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
-     _sum: {
-       InvoiceTotal: true,
-    }
-    });
+  const last30DaysRevenueOwed = await service.getRevenueOwedTotal({days: 30, userId: req.user!.id});
+  const last90DaysRevenueOwed = await service.getRevenueOwedTotal({days: 90, userId: req.user!.id});
+  const last180DaysRevenueOwed = await service.getRevenueOwedTotal({days: 180, userId: req.user!.id});
+  const last365DaysRevenueOwed = await service.getRevenueOwedTotal({days: 365, userId: req.user!.id});
 
   const totalRevenueOwed = await db.getAllInvoicesUsingAggregate({
     where: {userId: req.user!.id, verificationStatus: "VERIFIED", paymentStatus: "UNPAID", invoiceType: "ACCOUNTS_RECEIVABLE"},
@@ -551,16 +481,16 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     },
     revenue:{
       last30Days: {
-        amount: last30DaysRevenue._sum?.InvoiceTotal ?? 0, 
-        amountOwed: last30DaysRevenueOwed._sum?.InvoiceTotal ?? 0,
+        amount: last30DaysRevenue,
+        amountOwed: last30DaysRevenueOwed,
       },
       last90Days: {
-        amount: last90DaysRevenue._sum?.InvoiceTotal ?? 0, 
-        amountOwed: 0
+        amount: last90DaysRevenue, 
+        amountOwed: last90DaysRevenueOwed,
       },
       last365Days: {
-        amount: last365DaysRevenue._sum?.InvoiceTotal ?? 0, 
-        amountOwed: 0
+        amount: last365DaysRevenue, 
+        amountOwed: last365DaysRevenueOwed,
       },
       total: {
         amount: totalRevenue._sum?.InvoiceTotal ?? 0, 
@@ -569,16 +499,16 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     },
     expenditure: {
       last30Days: {
-        amount: last30DaysExpenditure._sum?.InvoiceTotal ?? 0, 
-        amountDue: last30DaysExpenditureOwed._sum?.InvoiceTotal ?? 0,
+        amount: last30DaysExpenditure, 
+        amountDue: last30DaysExpenditureDue, 
       },
       last90Days: {
-        amount: last90DaysExpenditure._sum?.InvoiceTotal ?? 0, 
-        amountDue: last90DaysExpenditureOwed._sum?.InvoiceTotal ?? 0
+        amount: last90DaysExpenditure, 
+        amountDue: last90DaysExpenditureDue,
       },
       last365Days: {
-        amount: last365DaysExpenditure._sum?.InvoiceTotal ?? 0, 
-        amountDue: last365DaysExpenditureOwed._sum?.InvoiceTotal ?? 0
+        amount: last365DaysExpenditure ,
+        amountDue: last365DaysExpenditureDue,
       },
       total: {
         amount: totalExpenditure._sum?.InvoiceTotal ?? 0, 
@@ -587,16 +517,16 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     },
     profit: {
       last30Days: {
-        amount: (last30DaysRevenue._sum?.InvoiceTotal ?? 0) - (last30DaysExpenditure._sum?.InvoiceTotal ?? 0), 
-        projected: (last30DaysRevenue._sum?.InvoiceTotal ?? 0) + (last30DaysRevenueOwed._sum?.InvoiceTotal ?? 0) - (last30DaysExpenditure._sum?.InvoiceTotal ?? 0),
-      }, //projected = (revenue.amount + revenue.amountOwed) - (expenditure.amount + expenditure.amountDue)
+        amount: last30DaysRevenue - last30DaysExpenditure, 
+        projected: last30DaysRevenue + last30DaysRevenueOwed - (last30DaysExpenditure + last30DaysExpenditureDue),
+      },
       last90Days: {
-        amount: (last90DaysRevenue._sum?.InvoiceTotal ?? 0) - (last90DaysExpenditure._sum?.InvoiceTotal ?? 0),
-        projected: 0,
+        amount: last90DaysRevenue - last90DaysExpenditure,
+        projected: last90DaysRevenue + last90DaysRevenueOwed - (last90DaysExpenditure + last90DaysExpenditureDue),
       },
       last365Days: {
-        amount: (last365DaysRevenue._sum?.InvoiceTotal ?? 0) - (last365DaysExpenditure._sum?.InvoiceTotal ?? 0), 
-        projected: 0,
+        amount: last365DaysRevenue - last365DaysExpenditure, 
+        projected: last365DaysRevenue + last365DaysRevenueOwed - (last365DaysExpenditure + last365DaysExpenditureDue),
       },
       total: {
         amount: (totalRevenue._sum?.InvoiceTotal ?? 0) - (totalExpenditure._sum?.InvoiceTotal ?? 0), 
