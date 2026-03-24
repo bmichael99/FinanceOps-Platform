@@ -460,8 +460,6 @@ export async function getInvoiceDashboardSummary(req: Request, res: Response) {
     const chartData12MonthsP = getLastInvoiceSumsGroupedByMonth({monthCount: 12, userId: req.user!.id});
 
     const [chartData30Days,chartData90Days,chartData6Months,chartData12Months] = await Promise.all([chartData30DaysP,chartData90DaysP,chartData6MonthsP,chartData12MonthsP]);
-    
-
 
   const invoiceDashboardData: InvoiceDashboardSummaryType = {
     totalInvoices,
