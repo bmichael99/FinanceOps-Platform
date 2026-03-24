@@ -81,7 +81,7 @@ export async function getLastInvoiceSumsGroupedByDay({dayCount, userId, }: dayIn
   let currDate = new Date(todayDate.getTime() - (dayCount*ms24H));
 
   const invoiceData : InvoiceChartData[] = [];
-  for(let i = 0; i < dayCount; i++){
+  for(let i = 0; i <= dayCount; i++){
     //currentMonth = monthIndex which is a number from 0-11 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     let currentYear = currDate.getFullYear();
     let currentMonth = currDate.getMonth();
@@ -138,7 +138,7 @@ export async function getInvoiceTotalByDays({days, startDate = new Date(), invoi
          InvoiceTotal: true,
       }
   });
-
+  
   return lastNDaysInvoiceTotal._sum?.InvoiceTotal ?? 0;
 }
 //TODO add days option to be string but only string of "all"
