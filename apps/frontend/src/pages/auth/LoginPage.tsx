@@ -35,7 +35,7 @@ function LoginPage() {
     }),
   })
 
-  const {register, handleSubmit, formState:{errors}} = useForm(
+  const {setError, clearErrors, register, handleSubmit, formState:{errors}} = useForm(
     {defaultValues: 
       {
         username: "",
@@ -45,6 +45,7 @@ function LoginPage() {
 
   const  myHandleSubmit = async (data: z.infer<typeof FormSchema>) => {
     // console.log("form fields:", JSON.stringify(data));
+    clearErrors();
 
     const response = await fetch(API_URL + '/auth/login', {
       method: 'POST',
@@ -59,9 +60,17 @@ function LoginPage() {
     const responseData = await response.json();
     console.log("responseData:", responseData);
 
-    if(response.status == 200){
+    if(response.ok){
       setAuth({accessToken: responseData.accessToken, user: responseData.user});
-      await navigate('/dashboard')
+      await navigate('/dashboard');
+    }else{
+      if(responseData.msg){
+        setError('password', {message: "Incorrect username or password."});
+        setError('username', {});
+      }else{
+        setError('password', {message: "Server error."});
+        setError('username', {});
+      }
     }
   }
 
@@ -92,12 +101,12 @@ function LoginPage() {
             <div className="grid gap-2">
               <Label className={errors.username && "text-red-600"}htmlFor="username">Username</Label>
               <Input aria-invalid={errors.username && 'true'} className={errors.username && "border-red-600"}type="text" id="username" {...register("username")}/>
-              <p className="text-red-600">{errors?.username?.message}</p>
+              <p className="text-red-600 text-sm">{errors?.username?.message}</p>
             </div>
             <div className="grid gap-2">
               <Label className={errors.password && "text-red-600"}htmlFor="password">Password</Label>
               <Input aria-invalid={errors.password && 'true'} className={errors.password && "border-red-600"} type="password" id="password" {...register("password")}/>
-              <p className="text-red-600">{errors?.password?.message}</p>
+              <p className="text-red-600 text-sm">{errors?.password?.message}</p>
             </div>
              </form>
           </CardContent>

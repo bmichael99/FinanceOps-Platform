@@ -15,14 +15,16 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {userSchema, type userType} from "@finance-platform/schemas";
+import { useEffect } from 'react';
+import useRefreshToken from '@/hooks/useRefreshToken';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function SignupPage() {
   const navigate = useNavigate();
+  const refresh = useRefreshToken();
 
-
-  const {register, handleSubmit, formState:{errors}} = useForm(
+  const {setError, clearErrors, register, handleSubmit, formState:{errors}} = useForm(
     {defaultValues: 
       {firstName: "",
         username: "",
@@ -31,6 +33,7 @@ function SignupPage() {
     resolver: zodResolver(userSchema)});
 
   const  myHandleSubmit = async (data: userType) =>{
+    clearErrors();
     const response = await fetch(API_URL + '/auth/register', {
       method: 'POST',
       headers: {
@@ -40,13 +43,30 @@ function SignupPage() {
     });
     console.log(response);
 
-    if(response.status == 200){
+    if(response.ok){
       await navigate('/log-in')
+    } else {
+      const responseData = await response.json();
+
+      if(responseData.msg){
+        setError('username', {message: "A user with that username already exists."});
+      }else{
+        setError('firstName', {});
+        setError('username', {});
+        setError('password', {message: "Server error."});
+      }
     }
-    
   }
-  
-  console.log(errors);
+
+  useEffect(() => {
+    async function checkAuth(){
+      const accessToken = await refresh();
+      if(accessToken){
+        await navigate("/dashboard");
+      }
+    }
+    checkAuth();
+  },[])
 
   return (
     <div className='min-h-svh flex justify-center items-center'>
@@ -63,17 +83,17 @@ function SignupPage() {
             <div className="grid gap-2">
               <Label className={errors.firstName && "text-red-600"} htmlFor="firstName">First Name</Label>
               <Input aria-invalid={errors.firstName && 'true'} className={errors.firstName && "border-red-600"} type="text" id="firstName" {...register("firstName")}/>
-              <p className="text-red-600">{errors?.firstName?.message}</p>
+              <p className="text-red-600 text-sm">{errors?.firstName?.message}</p>
             </div>
             <div className="grid gap-2">
               <Label className={errors.username && "text-red-600"}htmlFor="username">Username</Label>
               <Input aria-invalid={errors.username && 'true'} className={errors.username && "border-red-600"}type="text" id="username" {...register("username")}/>
-              <p className="text-red-600">{errors?.username?.message}</p>
+              <p className="text-red-600 text-sm">{errors?.username?.message}</p>
             </div>
             <div className="grid gap-2">
               <Label className={errors.password && "text-red-600"}htmlFor="password">Password</Label>
               <Input aria-invalid={errors.password && 'true'} className={errors.password && "border-red-600"} type="password" id="password" {...register("password")}/>
-              <p className="text-red-600">{errors?.password?.message}</p>
+              <p className="text-red-600 text-sm">{errors?.password?.message}</p>
             </div>
              </form>
           </CardContent>

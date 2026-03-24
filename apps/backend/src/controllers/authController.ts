@@ -9,6 +9,10 @@ export const registerUserPost = async (req : Request, res : Response, next : Nex
   try{
     
     const password : string = await bcrypt.hash(req.body.password, 10);
+    const checkUsername = await db.getUserByUsername(req.body.username);
+    if(checkUsername){
+      return res.status(409).json({success: false, msg: "username already exists"});
+    }
     const user = await db.createUser({firstName : req.body.firstName, username : req.body.username, password});
     
     const jwt = utils.issueJWT(user);
