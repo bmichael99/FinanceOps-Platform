@@ -44,7 +44,7 @@ export const logInUserPost = async (req : Request, res : Response, next : NextFu
       //save refresh token to DB for current user
       await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
-      //send access token to client
+      //send access and refresh token to client
       res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: 'none', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
       res.status(200).json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires});
     

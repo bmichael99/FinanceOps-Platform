@@ -10,14 +10,16 @@ const useRefreshToken = () => {
       method: 'GET',
       credentials: 'include'
     });
+    if(response.ok){
+      const responseData = await response.json();
 
-    const responseData = await response.json();
+      setAuth((prev : any) => {
+        return {...prev, accessToken: responseData.accessToken}
+      })
 
-    setAuth((prev : any) => {
-      return {...prev, accessToken: responseData.accessToken}
-    })
-
-    return responseData.accessToken;
+      return responseData.accessToken;
+    }
+    return undefined;
   }
 
   return refresh;

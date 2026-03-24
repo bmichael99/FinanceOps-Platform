@@ -8,20 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {useNavigate } from "react-router-dom";
+import {redirect, useNavigate } from "react-router-dom";
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useAuth from '@/hooks/useAuth'
+import { useEffect, useState } from 'react';
+import useRefreshToken from '@/hooks/useRefreshToken';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function LoginPage() {
   const navigate = useNavigate();
+  const refresh = useRefreshToken();
 
-  const {setAuth} = useAuth();
+  const {auth, setAuth} = useAuth();
 
   const FormSchema = z.object({
     username: z.string().min(4, {
@@ -41,8 +44,8 @@ function LoginPage() {
     resolver: zodResolver(FormSchema)});
 
   const  myHandleSubmit = async (data: z.infer<typeof FormSchema>) => {
-    console.log(JSON.stringify(data));
-    
+    // console.log("form fields:", JSON.stringify(data));
+
     const response = await fetch(API_URL + '/auth/login', {
       method: 'POST',
       headers: {
@@ -51,18 +54,26 @@ function LoginPage() {
       credentials: 'include',
       body: JSON.stringify(data)
     });
-    console.log(response);
+    console.log("repsonse:", response);
 
     const responseData = await response.json();
-    console.log(responseData);
-
-    setAuth({accessToken: responseData.accessToken, user: responseData.user});
+    console.log("responseData:", responseData);
 
     if(response.status == 200){
+      setAuth({accessToken: responseData.accessToken, user: responseData.user});
       await navigate('/dashboard')
     }
-    
   }
+
+  useEffect(() => {
+    async function checkAuth(){
+      const accessToken = await refresh();
+      if(accessToken){
+        await navigate("/dashboard");
+      }
+    }
+    checkAuth();
+  },[])
   
   //console.log(errors);
 

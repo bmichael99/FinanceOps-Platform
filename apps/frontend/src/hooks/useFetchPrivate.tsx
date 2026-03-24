@@ -44,7 +44,9 @@ const useFetchPrivate = () => {
     try{
       if(response.status === 401){
         const newAccessToken = await refresh();
-        setAuth({...auth, accessToken: newAccessToken});
+        // setAuth({...auth, accessToken: newAccessToken}); redundant? refresh() already sets this. 
+        // However we should use the returned value as the current tokens are stale within this function
+        // even after update due to how state works in react
         
         response = await makeRequest(newAccessToken);
 
