@@ -2,7 +2,7 @@ import React from 'react'
 import {type InvoiceTableData} from "@finance-platform/types"
 import {type ColumnDef} from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, ArrowUpDown, SquareArrowOutUpRight } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, SquareArrowOutUpRight, BadgeCheck, CircleAlert } from "lucide-react"
 import { toast } from "sonner"
 import {
   DropdownMenu,
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/tooltip"
 import useFetchPrivate from '@/hooks/useFetchPrivate'
 import { useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { IconAlertCircleFilled, IconCircleCheckFilled } from '@tabler/icons-react'
 
 type useBrowseInvoiceColumnsType = {
   setInvoiceTableData: React.Dispatch<React.SetStateAction<InvoiceTableData[] | undefined>>
@@ -47,7 +49,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
   }
 
   function isWithin30Days(date: Date) : boolean{
-    if((currentTime - date.getTime()) <= thirtyDaysInMilliseconds){
+    if(currentTime < date.getTime() && (date.getTime() - currentTime) <= thirtyDaysInMilliseconds){
       return true;
     }
     return false;
@@ -61,7 +63,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
         return (
           <Tooltip>
             <TooltipTrigger>
-              <Button variant='ghost' onClick={async () => await navigate(`${row.original.fileName}`)}><SquareArrowOutUpRight /></Button>
+              <Button variant='ghost' onClick={async () => await navigate(`/dashboard/invoices/browse/${row.original.fileName}`)}><SquareArrowOutUpRight /></Button>
             </TooltipTrigger>
             <TooltipContent>
               View/Edit Invoice
@@ -103,7 +105,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
       cell: ({row}) => {
         return (
         <div className=''>
-          {row.original.InvoiceId}
+          {row.original.InvoiceId && (row.original.InvoiceId.slice(0,30) + (row.original.InvoiceId.length > 30 ? "..." : ""))}
         </div>
         )
       },
@@ -114,7 +116,7 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
       cell: ({row}) => {
         return (
         <div className=''>
-          {row.original.originalFileName.slice(0,35) + (row.original.originalFileName.length > 35 ? "..." : "")}
+          {row.original.originalFileName.slice(0,30) + (row.original.originalFileName.length > 30 ? "..." : "")}
         </div>
         )
       },
@@ -157,8 +159,40 @@ export function useBrowseInvoiceColumns({setInvoiceTableData} : useBrowseInvoice
       },
       cell: ({row}) => {
         return (
-        <div className={(row.original.DueDate && isWithin30Days(new Date(row.original.DueDate))) ? 'pl-3 text-red-600' : 'pl-3'} >
+        <div className={(row.original.DueDate && row.original.paymentStatus == "UNPAID" && row.original.invoiceType == "ACCOUNTS_PAYABLE" && isWithin30Days(new Date(row.original.DueDate))) ? 'pl-3 text-red-600' : 'pl-3'} >
           {row.original.DueDate ? new Date(row.original.DueDate).toDateString() : "N/A"}
+        </div>
+        )
+      }
+    },
+    {
+      accessorKey: "paymentStatus",
+      header: ({ column }) => {
+        return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className='text-right'
+            >
+              Status
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        )
+      },
+      cell: ({row}) => {
+        return (
+        <div className='pl-3' >
+          <Badge className={`${row.original.paymentStatus=="PAID" && 'text-muted-foreground'} px-1.5`} variant={'outline'}>
+            {row.original.paymentStatus == "PAID" ? 
+            <IconCircleCheckFilled className='fill-green-500 dark:fill-green-400'></IconCircleCheckFilled>
+            :
+            <IconAlertCircleFilled className='fill-red-500 dark:fill-red-400'></IconAlertCircleFilled>
+            }
+            
+            
+            {row.original.paymentStatus === "UNPAID" ? "Unpaid" : "Paid"}
+          </Badge>
+          
         </div>
         )
       }

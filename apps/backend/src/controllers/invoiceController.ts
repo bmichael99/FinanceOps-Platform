@@ -313,6 +313,8 @@ export async function getInvoiceTableData(req: Request, res: Response){
     InvoiceTotal: true,
     InvoiceId: true,
     DueDate: true,
+    invoiceType: true,
+    paymentStatus: true,
   };
 
   

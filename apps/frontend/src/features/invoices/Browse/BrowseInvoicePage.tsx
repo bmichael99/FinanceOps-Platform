@@ -35,7 +35,7 @@ function BrowseInvoicePage({}: Props) {
   },[])
   return (
     <div className='my-4 flex justify-center'>
-    <div className='w-full max-w-6xl'>
+    <div className='w-full max-w-7xl'>
       {loadingInvoiceTableData ? (<div className='flex justify-center items-center gap-2'><Spinner/><p>Loading invoice data...</p></div>) : (invoiceTableData && <BrowseInvoiceDataTable columns={columns} data={invoiceTableData} />)}
     </div>
     </div>

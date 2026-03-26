@@ -53,7 +53,8 @@ function HomePage({}: Props) {
   useEffect(() => {
     async function getInvoiceTableData(){
       setloadingInvoiceTableData(true);
-      const response = await getManyInvoices({paymentStatus: 'UNPAID',dueBefore: new Date().toDateString(), status:'COMPLETED', verified: 'VERIFIED', view: 'CUSTOM', fields: ["fileName","originalFileName","InvoiceDate","InvoiceTotal","InvoiceId","DueDate"]})
+      //pastdue invoice
+      const response = await getManyInvoices({paymentStatus: 'UNPAID',dueBefore: new Date().toDateString(), status:'COMPLETED', verified: 'VERIFIED', view: 'CUSTOM', fields: ["paymentStatus", "invoiceType", "fileName","originalFileName","InvoiceDate","InvoiceTotal","InvoiceId","DueDate"]})
       if(!response.ok){
         setloadingInvoiceTableData(false);
         return;
