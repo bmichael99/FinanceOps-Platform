@@ -32,6 +32,8 @@ function UploadInvoicePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fetchPrivate = useFetchPrivate();
   const [loading, setLoading] = useState(true);
+  const [loadingRequest,setLoadingRequest] = useState(false);
+  const isSubmitting = useRef(false);
 
   const fileSchema = z.array(
     z.object({
@@ -45,6 +47,11 @@ function UploadInvoicePage() {
   .max(5, { error: "Cannot upload more than 5 files at once." });
 
   async function upload() {
+    if(isSubmitting.current == true) return;
+    setLoadingRequest(true);
+    isSubmitting.current = true;
+
+
     const formData = new FormData();
     for(let i = 0; i < files.length; i++){
       console.log(files[i].file.name);
@@ -80,6 +87,9 @@ function UploadInvoicePage() {
       setErrors(["Upload failed"]);
       console.error("Upload failed");
     }
+
+    setLoadingRequest(false);
+    isSubmitting.current = false;
   }
 
   function checkDuplicateFiles(newFiles: FileType[]) : FileType[]{
@@ -232,10 +242,10 @@ function UploadInvoicePage() {
             <p className='font-bold'>Drag & drops files here</p>
             <p className='text-muted-foreground'>Or click to browse (max 5 files, up to 4MB each)</p>
           </label>
+          <Button type="button" onClick={upload} disabled={files.length == 0 || loadingRequest || loading}>Upload</Button>
 
-          <Button type="button" onClick={upload} disabled={!files}>Upload</Button>
           {/*List of files to upload*/}
-          {/*We can refactor this into a fileList component and we would eventually want to pass in status as well for displaying current file status (uploading, processing, finished, etc)*/}
+          {/*We should refactor this into its own component*/}
           {files.map((file) => 
           <div key={file.id} className='flex flex-1 justify-between items-center p-2'>
           <div className = 'flex gap-2 items-center'>

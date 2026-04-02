@@ -34,13 +34,13 @@ export const logInUserPost = async (req : Request, res : Response, next : NextFu
   try{
     const user = await db.getUserByUsername(req.body.username);
     if(!user){
-      return res.status(401).json({success:false, msg: "Could not find user"});
+      return res.status(401).json({success:false, msg: "Could not find user", type: "username"});
     }
 
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match) {
       // passwords do not match!
-      res.status(401).json({success:false, msg: "Incorrect password"});
+      res.status(401).json({success:false, msg: "Incorrect password", type: "password"});
     }else{
       const jwt = utils.issueJWT(user);
       //const hashedRefreshToken = await bcrypt.hash(jwt.refreshToken, 10);

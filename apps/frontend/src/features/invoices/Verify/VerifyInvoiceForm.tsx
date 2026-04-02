@@ -24,10 +24,11 @@ type Props = {
   invoiceData: Invoice,
   onSubmit: (data: InvoiceFormType, invoiceId: string) => Promise<void>,
   onDelete: (invoice: Invoice) => Promise<void>,
+  isSubmittingForm: boolean,
 }
 
-function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) {
-  const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
+function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete, isSubmittingForm}: Props) {
+  
   const {register, control, handleSubmit, formState:{errors}} = useForm(
     //set default values to results from api request.
     
@@ -47,7 +48,7 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
 
   return (
     <div>
-      {invoiceId && <form onSubmit={handleSubmit(async (data) => {setIsSubmittingForm(true); await onSubmit(data, invoiceId);})}>
+      {invoiceId && <form onSubmit={handleSubmit(async (data) => await onSubmit(data, invoiceId))}>
         <FieldGroup>
         {/*Required Fields*/}
         <FieldSet>
@@ -145,8 +146,8 @@ function VerifyInvoiceForm({invoiceId, invoiceData, onSubmit, onDelete}: Props) 
           </FieldGroup>
         </FieldSet>
         <Field orientation="horizontal"> 
-          <Button disabled={isSubmittingForm ? true : false} type="submit">Submit</Button>
-          <Button disabled={isSubmittingForm ? true : false} variant="destructive" type="button" onClick={async () => await onDelete(invoiceData)}>Delete Invoice</Button>
+          <Button disabled={isSubmittingForm} type="submit">Submit</Button>
+          <Button disabled={isSubmittingForm} variant="destructive" type="button" onClick={async () => await onDelete(invoiceData)}>Delete Invoice</Button>
         </Field>
         </FieldGroup>
       </form>}

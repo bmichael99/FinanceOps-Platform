@@ -1,5 +1,5 @@
 import useFetchPrivate from '@/hooks/useFetchPrivate'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   NativeSelect,
   NativeSelectOption,
@@ -28,6 +28,9 @@ function VerifyInvoicePage({}: Props) {
   const [loadingInvoiceList, setLoadingInvoiceList] = useState<boolean>(true);
   const fetchPrivate = useFetchPrivate();
   const navigate = useNavigate();
+  const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
+  const isSubmittingFormRef = useRef(false);
+
   //fetch a list of completed invoices
   useEffect(() => {
     async function getInvoiceNames(){
@@ -61,19 +64,32 @@ function VerifyInvoicePage({}: Props) {
     })
   },[selectedFile])
 
-  function handleInvoiceSelect(invoiceId : string) {
-    setSelectedFile(invoiceId);
+  function handleInvoiceSelect(fileName : string) {
+    setSelectedFile(fileName);
   }
 
   async function submitForm(data: InvoiceFormType, invoiceId: string){
+    if(isSubmittingFormRef.current) return;
+    isSubmittingFormRef.current = true;
+    setIsSubmittingForm(true);
+
     const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
     console.log(await response.json());
-    if (response.status == 200){
-      await navigate(0);
+    if (response.ok){
+        await navigate(0);
+    }else{
+      toast.error("An error occured. Please try again later.");
     }
+
+    setIsSubmittingForm(false);
+    isSubmittingFormRef.current = false;
   }
   
   async function deleteInvoice(invoice: Invoice){
+    if(isSubmittingFormRef.current) return;
+    isSubmittingFormRef.current = true;
+    setIsSubmittingForm(true);
+
     if(!window.confirm(`Are you sure you want to delete Invoice ${invoice.originalFileName} with ID ${invoice.InvoiceId}?`))
       return;
     //optimistic UI update with restoration on API failure.
@@ -85,6 +101,9 @@ function VerifyInvoicePage({}: Props) {
     } else {
       toast.error("Failed to delete invoice. Please try again later.");
     }
+    
+    isSubmittingFormRef.current = false;
+    setIsSubmittingForm(false);
   }
 
   return (
@@ -101,7 +120,7 @@ function VerifyInvoicePage({}: Props) {
       ? 
       <div className='flex justify-center items-center gap-2'><Spinner/><p>Loading form data...</p></div> 
       :
-      <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData} onSubmit={submitForm} onDelete={deleteInvoice}></VerifyInvoiceForm>)}
+      <VerifyInvoiceForm invoiceId={selectedFile} invoiceData={invoiceData} onSubmit={submitForm} onDelete={deleteInvoice} isSubmittingForm={isSubmittingForm}></VerifyInvoiceForm>)}
       {selectedFile && <VerifyInvoiceDisplayFile invoiceId={selectedFile}></VerifyInvoiceDisplayFile>}
     </div>
   </div>

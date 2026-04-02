@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useAuth from '@/hooks/useAuth'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useRefreshToken from '@/hooks/useRefreshToken';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -25,6 +25,8 @@ function LoginPage() {
   const refresh = useRefreshToken();
 
   const {auth, setAuth} = useAuth();
+  const [loadingRequest,setLoadingRequest] = useState(false);
+  const isSubmitting = useRef(false);
 
   const FormSchema = z.object({
     username: z.string().min(4, {
@@ -44,7 +46,9 @@ function LoginPage() {
     resolver: zodResolver(FormSchema)});
 
   const  myHandleSubmit = async (data: z.infer<typeof FormSchema>) => {
-    // console.log("form fields:", JSON.stringify(data));
+    if(isSubmitting.current == true) return;
+    isSubmitting.current = true;
+    setLoadingRequest(true);
     clearErrors();
 
     const response = await fetch(API_URL + '/auth/login', {
@@ -64,14 +68,18 @@ function LoginPage() {
       setAuth({accessToken: responseData.accessToken, user: responseData.user});
       await navigate('/dashboard');
     }else{
-      if(responseData.msg){
-        setError('password', {message: "Incorrect username or password."});
-        setError('username', {});
-      }else{
+      if(responseData?.type == "password"){
+        setError('password', {message: "Incorrect password."});
+        
+      }else if (responseData?.type == "username"){
+        setError('username', {message: "Username does not exist."});
+      } else{
         setError('password', {message: "Server error."});
         setError('username', {});
       }
     }
+    setLoadingRequest(false);
+    isSubmitting.current = false;
   }
 
   useEffect(() => {
@@ -112,7 +120,9 @@ function LoginPage() {
           </CardContent>
           
           <CardFooter className='flex-col gap-2'>
-            <Button type='submit' form ="authForm" className='w-full'>Log In</Button>
+            {(loadingRequest || errors?.password || errors?.username) ? 
+            <Button type='submit' form ="authForm" className='w-full' disabled>Log In</Button> :
+            <Button type='submit' form ="authForm" className='w-full'>Log In</Button>}
             <Button variant={'outline'} className='w-full' onClick={() => location.href='/sign-up'}>Sign Up Instead</Button>
           </CardFooter>
          

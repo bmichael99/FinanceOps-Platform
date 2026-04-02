@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {userSchema, type userType} from "@finance-platform/schemas";
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useRefreshToken from '@/hooks/useRefreshToken';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -23,6 +23,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 function SignupPage() {
   const navigate = useNavigate();
   const refresh = useRefreshToken();
+  const [loadingRequest,setLoadingRequest] = useState(false);
+  const isSubmitting = useRef(false);
 
   const {setError, clearErrors, register, handleSubmit, formState:{errors}} = useForm(
     {defaultValues: 
@@ -33,6 +35,9 @@ function SignupPage() {
     resolver: zodResolver(userSchema)});
 
   const  myHandleSubmit = async (data: userType) =>{
+    if(isSubmitting.current == true) return;
+    isSubmitting.current = true;
+    setLoadingRequest(true);
     clearErrors();
     const response = await fetch(API_URL + '/auth/register', {
       method: 'POST',
@@ -56,6 +61,8 @@ function SignupPage() {
         setError('password', {message: "Server error."});
       }
     }
+    setLoadingRequest(false);
+    isSubmitting.current = false;
   }
 
   useEffect(() => {
@@ -99,7 +106,10 @@ function SignupPage() {
           </CardContent>
           
           <CardFooter className='flex-col gap-2'>
-            <Button type='submit' form ="authForm" className='w-full'>Sign Up</Button>
+
+            {(loadingRequest || errors?.username || errors?.password) ? 
+            <Button type='submit' form ="authForm" className='w-full' disabled>Sign Up</Button> :
+            <Button type='submit' form ="authForm" className='w-full'>Sign Up</Button>}
             <Button variant={'outline'} className='w-full' onClick={() => location.href='/log-in'}>Log In Instead</Button>
           </CardFooter>
          
