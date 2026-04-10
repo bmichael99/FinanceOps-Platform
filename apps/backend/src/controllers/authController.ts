@@ -59,7 +59,7 @@ export const logInUserPost = async (req : Request, res : Response, next : NextFu
 
 };
 
-export const handleLogout = async (req : Request, res : Response) => {
+export const handleLogout = async (req : Request, res : Response, next: NextFunction) => {
   //on client, also delete the accessToken.
   const cookies = req.cookies;
 
@@ -82,7 +82,21 @@ export const handleLogout = async (req : Request, res : Response) => {
     res.clearCookie('jwt', {httpOnly: true, sameSite: 'none', secure: true});
     res.sendStatus(204);
   } catch(err){
-    console.log(err);
+    next(err);
   }
   
 };
+
+export const handleGoogleAuth = async (req : Request, res : Response, next: NextFunction) => {
+
+
+
+
+try{
+  
+
+
+} catch(err){
+  next(err);
+}
+}

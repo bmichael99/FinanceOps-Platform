@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useRef, useState } from 'react';
 import useRefreshToken from '@/hooks/useRefreshToken';
+import GoogleLogInButton from './GoogleLogInButton';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -91,11 +92,25 @@ function LoginPage() {
     }
     checkAuth();
   },[])
+
+  function onSignIn(googleUser : any) {
+    console.log("yooooo")
+    var profile = googleUser.getBasicProfile();
+    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+    console.log('Name: ' + profile.getName());
+    console.log('Image URL: ' + profile.getImageUrl());
+    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+  }
+
   
   //console.log(errors);
 
   return (
+    <>
+    <script src="https://accounts.google.com/gsi/client" async></script>
     <div className='min-h-svh flex justify-center items-center'>
+        
+
         <Card className="w-full max-w-sm" >
         <CardHeader>
           <CardTitle>Log into your account</CardTitle>
@@ -124,11 +139,14 @@ function LoginPage() {
             <Button type='submit' form ="authForm" className='w-full' disabled>Log In</Button> :
             <Button type='submit' form ="authForm" className='w-full'>Log In</Button>}
             <Button variant={'outline'} className='w-full' onClick={() => location.href='/sign-up'}>Sign Up Instead</Button>
+            <GoogleLogInButton/>
           </CardFooter>
          
         
         </Card>
     </div>
+
+    </>
   )
 }
 
