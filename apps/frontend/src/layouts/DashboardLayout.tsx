@@ -52,12 +52,12 @@ function DashboardLayout({}: props) {
             <BreadcrumbList>
               {crumbs.map((crumb,i) => 
                 {
-                return <>
+                return <React.Fragment key={i}>
                 <BreadcrumbItem>
                   <BreadcrumbLink className={crumbs.length-1 == i ? 'font-bold' : 'hover:cursor-pointer'} onClick={async () => await navigate("/" + crumbs.slice(0,i+1).join("/"))}>{crumb}</BreadcrumbLink>
                 </BreadcrumbItem>
                 {(i != crumbs.length-1) &&<BreadcrumbSeparator />}
-                </>
+                </React.Fragment>
                 }
               )}
             </BreadcrumbList>
