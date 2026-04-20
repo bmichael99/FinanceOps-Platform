@@ -1,19 +1,10 @@
 import prisma from "../config/prisma";
-
-interface User {
-  firstName : string,
-  username : string,
-  password : string,
-}
+import { Prisma } from '../generated/prisma'
 
 //samples
-export const createUser = async ({firstName,username,password} : User) => {
+export const createUser = async (userData : Prisma.UserCreateInput) => {
     return await prisma.user.create({
-      data: {
-        firstName: firstName,
-        username: username,
-        password: password,
-      }
+      data: userData,
     });
 }
 
@@ -54,6 +45,14 @@ export const updateUserDeleteRefreshToken = async (userId : number) => {
   const user = await prisma.user.update({
     where: {id: userId},
     data: {refreshToken: null}
+  });
+
+  return user;
+}
+
+export const getUserByGoogleId = async (id : string) => {
+  const user = prisma.user.findFirst({
+    where: {googleUserId: id}
   });
 
   return user;

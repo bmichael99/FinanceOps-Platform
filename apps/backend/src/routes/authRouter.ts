@@ -7,6 +7,6 @@ authRouter.post("/auth/register", authController.registerUserPost);
 authRouter.post("/auth/login", authController.logInUserPost);
 authRouter.get("/auth/log-out", authController.handleLogout);
 //authRouter.get("/auth/me", requireAuth, authController.getCurrentUser);
-authRouter.get("/auth/google/receiver", authController.handleGoogleAuth);
+authRouter.post("/auth/google/receiver", authController.handleGoogleAuth);
 
 export default authRouter;
