@@ -40,7 +40,7 @@ function useGetManyInvoices() {
     if (view !== undefined) params.set("view", view);
     if (fields !== undefined) params.set("fields", fields.join(","));
     
-    console.log(params.toString());
+    // console.log(params.toString());
     const response = fetchPrivate({endpoint: `/invoices?${params.toString()}`, method: "GET", abortController})
     return response;
   }
