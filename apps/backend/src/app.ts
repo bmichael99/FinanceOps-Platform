@@ -9,6 +9,7 @@ import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithoutRequest } fr
 import cors from "cors";
 import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
+import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
 
 //imports the express framework
@@ -97,6 +98,30 @@ app.use(async (_req,_res,next) => {
 })
 
 /**
+ *  -------------------- SECURITY HEADERS --------------------
+ */
+
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  //Referrer Policy Header
+  res.set("Referrer-Policy", "no-referrer-when-downgrade"); //for dev only
+
+  //Content Security Policy Header
+  const CSP = [
+    "connect-src 'self' https://accounts.google.com/gsi/",
+    "frame-src 'self' https://accounts.google.com/gsi/",
+    "script-src 'self' https://accounts.google.com/gsi/client",
+    "style-src 'self' https://accounts.google.com/gsi/style",
+    "default-src 'self' https://accounts.google.com/gsi/"
+  ];
+  res.set("Content-Security-Policy", CSP.join(" ; "));
+
+  //Cross Origin Opener Policy (COOP) Header
+  res.set("Cross-Origin-Opener-Policy", ["same-origin", "same-origin-allow-popups"]);
+
+  next();
+});
+
+/**
  *  -------------------- CACHE CONTROL --------------------
  */
 
@@ -119,7 +144,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
  *  -------------------- ROUTER--------------------
  */
 
-//serve index router when root is visited
 import indexRouter from "./routes/indexRouter";
 import usersRouter from "./routes/usersRouter";
 import authRouter from "./routes/authRouter";
@@ -133,31 +157,28 @@ app.use(authRouter);
 app.use(refreshRouter);
 app.use(invoiceRouter);
 
-
-
 /**
  * -------------------- ERROR HANDLING --------------------
  */
 
 app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
-  if (err instanceof PrismaClientKnownRequestError) {
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if(err.code === 'P2002'){
-      
-      return res.status(409).json({message: 'Prisma error. Unique id already exists:' + err.message});
+      console.error("P2002 Prisma error. Unique id already exists");
+      return res.status(409).json({success: false, msg: "Unique constraint violation. Some unique id already exists"});
     }
 
-    console.error(err);
+    console.error("Prisma error caught: \n", err);
     return res.status(500).json({error: 'Prisma error.', code: err.code, message: err.message});
   }
   else if (err instanceof MulterError){
+    console.error("Multer error caught: \n", err);
     return res.status(400).json({error: 'Multer error, invalid upload.', code: err.code, message: err.message});
   }
-  
-  console.error(err); // Log unexpected errors
+
+  console.error("No custom error catching configured for this error in app.ts: \n", err); // Log unexpected errors
   res.status(500).json({ message: 'Something went wrong' });
 });
-
-
 
 /**
  *  -------------------- SERVER --------------------
