@@ -119,6 +119,7 @@ model User{
   role         Role       @default(USER)
   createdAt    DateTime   @default(now())
   refreshToken String?
+  googleUserId String?    @unique
 
   invoices            Invoice[]
 }
