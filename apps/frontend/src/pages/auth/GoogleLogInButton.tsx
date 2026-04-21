@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
-type Props = {}
+type Props = {
+  loginContext: "LogIn" | "SignUp"
+}
 
 
-function GoogleLogInButton({}: Props) {
+function GoogleLogInButton({loginContext}: Props) {
   const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -11,7 +13,7 @@ function GoogleLogInButton({}: Props) {
     <>
       <div id="g_id_onload"
         data-client_id={`${CLIENT_ID}.apps.googleusercontent.com`}
-        data-context="signin"
+        data-context={loginContext == "LogIn" ? "signin" : "signup"}
         data-ux_mode="popup"
         data-login_uri={`${API_URL}/auth/google/receiver`}
         data-auto_prompt="false">
@@ -21,7 +23,7 @@ function GoogleLogInButton({}: Props) {
         data-type="standard"
         data-shape="rectangular"
         data-theme="outline"
-        data-text="signin_with"
+        data-text={loginContext == "LogIn" ? "signin_with" : "signup_with"}
         data-size="medium"
         data-logo_alignment="left">
     </div>

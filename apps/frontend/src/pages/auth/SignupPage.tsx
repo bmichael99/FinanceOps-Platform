@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import {userSchema, type userType} from "@finance-platform/schemas";
 import { useEffect, useRef, useState } from 'react';
 import useRefreshToken from '@/hooks/useRefreshToken';
+import GoogleLogInButton from './GoogleLogInButton';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -44,16 +45,17 @@ function SignupPage() {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(data)
     });
     console.log(response);
 
     if(response.ok){
-      await navigate('/log-in')
+      await navigate('/dashboard')
     } else {
       const responseData = await response.json();
 
-      if(responseData.msg){
+      if(responseData && response.status == 409){
         setError('username', {message: "A user with that username already exists."});
       }else{
         setError('firstName', {});
@@ -76,6 +78,8 @@ function SignupPage() {
   },[])
 
   return (
+    <>
+    <script src="https://accounts.google.com/gsi/client" async></script>
     <div className='min-h-svh flex justify-center items-center'>
         <Card className="w-full max-w-sm" >
         <CardHeader>
@@ -111,11 +115,13 @@ function SignupPage() {
             <Button type='submit' form ="authForm" className='w-full' disabled>Sign Up</Button> :
             <Button type='submit' form ="authForm" className='w-full'>Sign Up</Button>}
             <Button variant={'outline'} className='w-full' onClick={() => location.href='/log-in'}>Log In Instead</Button>
+            <GoogleLogInButton loginContext='SignUp'/>
           </CardFooter>
          
         
         </Card>
     </div>
+    </>
   )
 }
 
