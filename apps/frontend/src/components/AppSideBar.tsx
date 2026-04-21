@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings, FileUp, ShieldCheck, SquarePlus, ChartNoAxesCombined, FileText } from "lucide-react"
+import { Calendar, Home, Inbox, Search, Settings, FileUp, ShieldCheck, SquarePlus, ChartNoAxesCombined, FileText, FileQuestionMark, OctagonAlert } from "lucide-react"
  import { Link } from "react-router-dom";
 import {
   Sidebar,
@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "../components/ui/sidebar"
+import { Badge } from "./ui/badge";
  
 // Menu items.
 const items = [
@@ -40,6 +41,7 @@ const invoiceItems = [
     title: "Verify",
     url: "/dashboard/invoices/verify",
     icon: ShieldCheck,
+    count: 1,
   },
   {
     title: "Browse",
@@ -99,6 +101,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
+                      {((item.count ?? 0) > 0) && <Badge className = "text-destructive" variant={"secondary"}><OctagonAlert ></OctagonAlert>{item.count}</Badge>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
