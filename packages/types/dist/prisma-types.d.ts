@@ -57,5 +57,6 @@ export type User = {
     role: Role;
     createdAt: Date;
     refreshToken: string | null;
+    googleUserId: string | null;
     invoices?: Invoice[];
 };

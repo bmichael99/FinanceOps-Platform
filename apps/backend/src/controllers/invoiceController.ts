@@ -1,6 +1,6 @@
 import * as db from "../repositories/invoiceRepository";
 import {Request, Response} from "express";
-import {type InvoiceTableData, type InvoiceDashboardSummaryType, InvoiceChartData} from "@finance-platform/types"
+import {type InvoiceTableData, type InvoiceDashboardSummaryType, InvoiceChartData, GetInvoiceCountResponse} from "@finance-platform/types"
 import { fileQueue } from "../config/redis";
 import { FileStatus, Invoice, ProcessingStatus, type FileResponseType,type FileStatusType } from "@finance-platform/types";
 import { addClient, deleteClient, getClient } from "../utils/clientHandler";
@@ -168,6 +168,10 @@ export async function getInvoices(req: Request, res: Response){
   }
 
   //define our response and apply view (shape of the result object)
+  //TODO: migrate view to use native prisma select mechanism:
+    //const prismaFields: Prisma.InvoiceCountArgs['select'] = Object.fromEntries(fieldsList.map((field) => [field, true]));
+    //const invoices = await db.getAllInvoicesWithFilters({where: filters, select: prismaFields});
+
   type ResponseType = FileResponseType[] | Invoice[];
   let response : ResponseType;
   switch(view){
@@ -185,6 +189,51 @@ export async function getInvoices(req: Request, res: Response){
 
   res.status(200).json(response)
 }
+
+export const getInvoiceCount = asyncHandler(async (req : Request, res : Response) => {
+//define zod schema for parsing query params. This allows us to validate our query params.
+  const QueryParamsSchema = z.object({
+    since: z.string().optional(),
+    dueSince: z.string().optional(),
+    dueBefore: z.string().optional(),
+    invoiceType: z.enum(["ACCOUNTS_PAYABLE", "ACCOUNTS_RECEIVABLE"]).optional(),
+    paymentStatus: z.enum(["PAID", "UNPAID"]).optional(),
+    status: z.enum(Object.keys(FileStatus)).optional(),
+    verified: z.string().transform((s) => {
+      if(s == "true") return true;
+      if(s == "false") return false;
+    }).optional(),
+  })
+  const result = QueryParamsSchema.safeParse(req.query);
+  if(!result.success){
+    res.status(400).json({message: "Invalid params"});
+    return;
+  }
+
+  //extract query params from parsed params.
+  const {dueBefore, paymentStatus, dueSince, invoiceType, since, status, verified} = result.data;
+  
+  //set filters
+  const filters: InvoiceFindManyType['where'] = { userId: req.user!.id };
+  if (since) filters.createdAt = { gte: new Date(since) };
+  if (dueSince) filters.DueDate = { gte: new Date(dueSince) };
+  if (dueBefore) filters.DueDate = { lte: new Date(dueBefore) };
+  if (status) filters.currentProcessingStatus = status as ProcessingStatus;
+  if (verified !== undefined) filters.verificationStatus = verified ? "VERIFIED" : "UNVERIFIED";
+  if (paymentStatus) filters.paymentStatus = paymentStatus as Invoice['paymentStatus'];
+  if (invoiceType) filters.invoiceType = invoiceType as Invoice['invoiceType'];
+
+  const invoiceCount = await db.getInvoiceCountWithFilters({where: filters});
+  
+  if(!invoiceCount){
+    return res.sendStatus(404); //not found
+  }
+
+  const payload : GetInvoiceCountResponse = {
+    count: invoiceCount
+  }
+  res.status(200).json(payload)
+})
 
 export const getInvoice = asyncHandler(async (req: Request, res: Response) => {
 //get invoiceId from URL param
