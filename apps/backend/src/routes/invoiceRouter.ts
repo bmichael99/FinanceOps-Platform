@@ -10,6 +10,7 @@ invoiceRouter.delete("/invoices/:invoiceId", passport.authenticate('jwt', {sessi
 
 invoiceRouter.post("/invoices", passport.authenticate('jwt', {session: false}), uploadMiddleware, invoiceController.createInvoice);
 invoiceRouter.get("/invoices", passport.authenticate('jwt', {session: false}), invoiceController.getInvoices);
+invoiceRouter.get("/invoices/count", passport.authenticate('jwt', {session: false}), invoiceController.getInvoiceCount);
 invoiceRouter.get("/invoices/status", passport.authenticate('jwt', {session: false}), invoiceController.invoiceEvents);
 invoiceRouter.get("/invoices/:invoiceId/signed-url", passport.authenticate('jwt', {session: false}), invoiceController.getS3SignedURL);
 invoiceRouter.get("/invoices/:invoiceId", passport.authenticate('jwt', {session: false}), invoiceController.getInvoice);
