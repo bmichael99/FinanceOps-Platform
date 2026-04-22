@@ -10,7 +10,7 @@ type Props = {
   invoiceType?: Invoice['invoiceType'],
   paymentStatus?: Invoice['paymentStatus'],
   status?: FileStatusType,
-  verified?: Invoice['verificationStatus'],
+  verified?: boolean,
   view?: "SUMMARY" | "FULL" | "CUSTOM",
   fields?: (keyof Invoice)[],
 }
