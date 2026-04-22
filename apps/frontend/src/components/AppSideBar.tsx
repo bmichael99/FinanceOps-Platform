@@ -11,6 +11,12 @@ import {
   SidebarMenuItem,
 } from "../components/ui/sidebar"
 import { Badge } from "./ui/badge";
+import { useEffect, useState } from "react";
+import type { GetInvoiceCountResponse } from "@finance-platform/types";
+import useGetManyInvoices from "@/api/useGetManyInvoices";
+import useGetInvoiceCount from "@/api/useGetInvoiceCount";
+
+
  
 // Menu items.
 const items = [
@@ -41,7 +47,7 @@ const invoiceItems = [
     title: "Verify",
     url: "/dashboard/invoices/verify",
     icon: ShieldCheck,
-    count: 1,
+    count: true,
   },
   {
     title: "Browse",
@@ -69,6 +75,26 @@ const analyticItems = [
 ]
  
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const getInvoiceCount = useGetInvoiceCount();
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const abortController = new AbortController();
+    async function getUnverifiedInvoiceCount(){
+      const response = await getInvoiceCount({abortController, verified: false, status: "COMPLETED"});
+      if(response.ok){
+        const data : GetInvoiceCountResponse = await response.json();
+        console.log(data)
+        setCount(data.count);
+      }
+    }
+    getUnverifiedInvoiceCount();
+    return(() => {
+      abortController.abort();
+    })
+  }, [])
+
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarContent>
@@ -101,7 +127,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                      {((item.count ?? 0) > 0) && <Badge className = "text-destructive" variant={"secondary"}><OctagonAlert ></OctagonAlert>{item.count}</Badge>}
+                      {(item.count && count > 0) && <Badge className = "text-destructive font-semibold" variant={"secondary"}>{count}</Badge>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
