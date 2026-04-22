@@ -54,7 +54,7 @@ function HomePage({}: Props) {
     async function getInvoiceTableData(){
       setloadingInvoiceTableData(true);
       //pastdue invoice
-      const response = await getManyInvoices({paymentStatus: 'UNPAID',dueBefore: new Date().toDateString(), status:'COMPLETED', verified: 'VERIFIED', view: 'CUSTOM', fields: ["paymentStatus", "invoiceType", "fileName","originalFileName","InvoiceDate","InvoiceTotal","InvoiceId","DueDate"]})
+      const response = await getManyInvoices({paymentStatus: 'UNPAID',dueBefore: new Date().toDateString(), status:'COMPLETED', verified: true, view: 'CUSTOM', fields: ["paymentStatus", "invoiceType", "fileName","originalFileName","InvoiceDate","InvoiceTotal","InvoiceId","DueDate"]})
       if(!response.ok){
         setloadingInvoiceTableData(false);
         return;
