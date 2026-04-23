@@ -150,6 +150,7 @@ import authRouter from "./routes/authRouter";
 import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
 import { delay } from './utils/delay';
+import { closeAllConnections } from "./utils/clientHandler";
 
 app.use(indexRouter);
 app.use(usersRouter);
@@ -193,10 +194,17 @@ const server = app.listen(PORT, () => {
 const shutdown = async () => {
   console.log("Shutting down server...");
   await prisma.$disconnect();
+  closeAllConnections();
   server.close(() => {
     console.log("HTTP server closed.");
     process.exit(0);
   });
+
+  //force shutdown if cleanup takes too long
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcing shutdown');
+    process.exit(1);
+  }, 5000);
 };
 
 process.on("SIGINT", shutdown);
