@@ -54,9 +54,9 @@ function UploadInvoicePage() {
 
     const formData = new FormData();
     for(let i = 0; i < files.length; i++){
-      console.log(files[i].file.name);
-      formData.append("files", files[i].file);
-      formData.append("clientIds", files[i].id);
+      //console.log(files[i].file.name);
+      formData.append(files[i].id, files[i].file);
+      //formData.append("clientIds", files[i].id);
     }
 
     //Optimistic loading for instantly telling the user that their files are uploading.
@@ -67,11 +67,13 @@ function UploadInvoicePage() {
       })
     );
     setUploadedFiles((currfiles) => ({...currfiles, ...optimisticData}))
-    setFiles([]);
+    
     const response = await fetchPrivate({endpoint: "/invoices", method: "POST", bodyData: formData});
     if (response.ok) {
+      setFiles([]);
       console.log("Upload successful");
       const uploadResponse: FileResponseType[] = await response.json();
+      console.log(uploadResponse);
       setUploadedFiles((prev) => {
         const updateCurrFiles = {...prev};
         for(let file of uploadResponse){
@@ -84,7 +86,24 @@ function UploadInvoicePage() {
         return updateCurrFiles;
       })
     } else {
-      setErrors(["Upload failed"]);
+      //update status of the files that failed to failed, clear files, and set relevant error.
+      //files is the list of files that are staged for upload by the user, uploadedFiles are files accepted by the back-end that are sent from files.
+      files.forEach((file) => {
+        setUploadedFiles((files) => ({
+          ...files,
+          [file.id]: {
+            ...files[file.id], 
+            status: "FAILED",
+          },
+        }));
+      })
+      setFiles([]);
+      if(response.status == 403){
+        setErrors(["Invoice limit reached. (5)"]);
+      } else {
+        setErrors(["Upload failed"]);
+      }
+      
       console.error("Upload failed");
     }
 
@@ -125,7 +144,7 @@ function UploadInvoicePage() {
       //convert each file object into an object that contains key value pairs of id and file.
       //append these new objects to our already existing array of objects currFiles
       let newFiles : FileType[] = Array.from(e.dataTransfer.files).map(file => ({
-        id: crypto.randomUUID(),
+        id: "files_"+crypto.randomUUID(),
         file: file,
       }));
       newFiles = checkDuplicateFiles(newFiles);
@@ -142,7 +161,7 @@ function UploadInvoicePage() {
   function handleClickToBrowse(e : React.ChangeEvent<HTMLInputElement>) {
     if(e.target.files && e.target.files.length > 0){
       let newFiles : FileType[] = Array.from(e.target.files).map(file => ({
-          id: crypto.randomUUID(),
+          id: "files_"+crypto.randomUUID(),
           file: file,
       }));
       newFiles = checkDuplicateFiles(newFiles);
@@ -168,6 +187,7 @@ function UploadInvoicePage() {
       withCredentials: true,
     });
     evtSource.addEventListener("fileStatus", (event) => {
+      console.log(event.data);
       const data: {userId: number, fileName: string, originalFileName: string, uploadTime: Date, status: "UPLOADING" | "PENDING" | "PROCESSING" | "SAVING" | "COMPLETED" | "FAILED"} = JSON.parse(event.data);
       setUploadedFiles((files) => ({
         ...files,

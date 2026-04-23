@@ -56,18 +56,15 @@ redis.on("message", (_channel, message) => {
 
 export async function createInvoice(req : Request, res : Response) { 
   const files = req.files as Express.Multer.File[];
-  const clientIds = Array.isArray(req.body.clientIds) ? req.body.clientIds : [req.body.clientIds];
+  // const clientIds = Array.isArray(req.body.clientIds) ? req.body.clientIds : [req.body.clientIds];
 
   if(!files || files.length == 0){
     return res.status(400).json("No files submitted. That shouldn't even be possible.");
   }
 
-
   const results = await Promise.allSettled(files?.map((file : Express.Multer.File) => 
     db.createInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'})
   ))
-
-  // await delay(3000);
 
   const fileResponse: FileResponseType[] = [];
 
@@ -76,16 +73,21 @@ export async function createInvoice(req : Request, res : Response) {
       try{
         const fileData : fileProcessingData = {fileName: files[i].filename, userId: req.user!.id, originalFileName: files[i].originalname, uploadTime: result.value.createdAt, status: "PENDING"};
         await fileQueue.add(files[i].filename, fileData, {removeOnComplete: true, removeOnFail: 25, attempts: 3, backoff: {type: "exponential", delay: 3000}}); 
-        fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: result.value.createdAt,status: "PENDING"})
+        fileResponse.push({clientID: files[i].fieldname, fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: result.value.createdAt,status: "PENDING"})
       }
       catch(queueErr) {
-        fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: result.value.createdAt, status: "FAILED", error: `Queueing failed: ${queueErr}`})
+        fileResponse.push({clientID: files[i].fieldname, fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: result.value.createdAt, status: "FAILED", error: `Queueing failed: ${queueErr}`})
         console.error("Some invoices failed to enqueue: ", {fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: `Queueing failed: ${queueErr}`});
       }
     } else {
-      fileResponse.push({clientID: clientIds[i], fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: new Date(), status: "FAILED", error: String(result.reason)})
+      fileResponse.push({clientID: files[i].fieldname, fileName: files[i].filename, originalFileName: files[i].originalname, uploadTime: new Date(), status: "FAILED", error: String(result.reason)})
       console.error("Some invoices failed to be saved to db: ", {fileName: files[i].filename, originalFileName: files[i].originalname, status: "FAILED", error: String(result.reason)});
     }
+  }
+  if(req.failedInvoiceUploads){
+    req.failedInvoiceUploads.forEach((failedInvoice) => {
+      fileResponse.push({clientID: failedInvoice.fieldname, fileName: failedInvoice.fieldname, originalFileName: failedInvoice.originalname, uploadTime: new Date(), status: "FAILED", error: failedInvoice.reason})
+    })
   }
 
   res.status(200).json(fileResponse);
@@ -104,7 +106,6 @@ export async function invoiceEvents(req: Request, res : Response){
     deleteClient(req.user!.id);
   });
 }
-
 
 /**
  * Query Parameter options: 

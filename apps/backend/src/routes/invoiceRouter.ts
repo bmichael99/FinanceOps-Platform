@@ -2,13 +2,14 @@ import {Router} from "express";
 import passport from "passport";
 import * as invoiceController from "../controllers/invoiceController.js";
 import uploadMiddleware from "../middlewares/uploadMiddleware.js";
+import { checkInvoiceLimits } from "../middlewares/invoiceMiddleware.js";
 const invoiceRouter = Router();
 
 invoiceRouter.get("/invoices/table-data", passport.authenticate('jwt', {session: false}), invoiceController.getInvoiceTableData);
 invoiceRouter.delete("/invoices/:invoiceId", passport.authenticate('jwt', {session: false}), invoiceController.deleteInvoice);
 // invoiceRouter.delete("/invoices", passport.authenticate('jwt', {session: false}), invoiceController.deleteManyInvoices);
 
-invoiceRouter.post("/invoices", passport.authenticate('jwt', {session: false}), uploadMiddleware, invoiceController.createInvoice);
+invoiceRouter.post("/invoices", passport.authenticate('jwt', {session: false}), checkInvoiceLimits, uploadMiddleware, invoiceController.createInvoice);
 invoiceRouter.get("/invoices", passport.authenticate('jwt', {session: false}), invoiceController.getInvoices);
 invoiceRouter.get("/invoices/count", passport.authenticate('jwt', {session: false}), invoiceController.getInvoiceCount);
 invoiceRouter.get("/invoices/status", passport.authenticate('jwt', {session: false}), invoiceController.invoiceEvents);
