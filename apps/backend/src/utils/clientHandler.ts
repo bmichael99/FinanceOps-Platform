@@ -15,3 +15,11 @@ export const deleteClient = (userId: number) => {
 export const getClient = (userId: number) => {
   return clientList[userId];
 }
+
+//for restarts
+export const closeAllConnections = () => {
+  for(const [userId,res] of Object.entries(clientList)){
+    // res.setHeader('Connection', 'close'); //tell the client to not reconnect, but we should probably let the client automatically reconnect.
+    res.end();
+  }//
+}
