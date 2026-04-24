@@ -1,5 +1,4 @@
 import useFetchPrivate from '@/hooks/useFetchPrivate'
-import React from 'react'
 import { type FileStatusType, type Invoice } from '@finance-platform/types';
 
 type Props = {
