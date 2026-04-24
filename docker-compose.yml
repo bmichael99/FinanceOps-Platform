@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    volumes:
+      - ./apps/backend/id_rsa_priv.pem:/run/secrets/jwt_priv.pem:ro
+      - ./apps/backend/id_rsa_pub.pem:/run/secrets/jwt_pub.pem:ro
+    environment:
+      JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_priv.pem
+      JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_pub.pem
+    ports:
+      - "3000:3000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    command: ["node", "apps/backend/dist/workers/index.js"]
