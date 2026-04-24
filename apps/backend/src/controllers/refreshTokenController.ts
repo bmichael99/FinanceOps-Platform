@@ -4,8 +4,8 @@ import fs from "fs";
 import dotenv from 'dotenv';
 import type {Request, Response} from "express";
 dotenv.config();
-const PUB_KEY = fs.readFileSync(__dirname + "/../id_rsa_pub.pem", "utf8");
-const PRIV_KEY = fs.readFileSync(__dirname + "/../id_rsa_priv.pem", "utf8");
+import { PUB_KEY, PRIV_KEY } from "../config/key.js"
+
 
 
 

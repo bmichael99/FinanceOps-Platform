@@ -11,6 +11,7 @@ import type {Request, Response, NextFunction} from "express";
 import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
+import { PUB_KEY } from "./config/key";
 
 //imports the express framework
 import express from "express";
@@ -19,7 +20,7 @@ import express from "express";
 const app = express();
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:4173'], //frontend URL here
+  origin: ['http://localhost:5173', 'http://localhost:8000'], //frontend URL here
   credentials: true,               //enable Set-Cookie and other credentials
 };
 app.use(cors(corsOptions));
@@ -43,7 +44,6 @@ app.use(express.urlencoded({ extended: true }));
 //parse cookies
 app.use(cookieParser());
 
-
 /**
  *  -------------------- PASSPORT SETUP --------------------
  */
@@ -51,8 +51,6 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 //asynchronous key, verify identity with public key.
-const pathToKey = path.join(__dirname, 'id_rsa_pub.pem');
-const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 const cookieExtractor = (req: any) => {
   let token = null;
