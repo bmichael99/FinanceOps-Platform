@@ -1,7 +1,8 @@
 import multer, { FileFilterCallback } from "multer";
-import * as db from "../repositories/invoiceRepository";
-import {NextFunction, Request} from "express";
+import {Request} from "express";
 import crypto from "crypto";
+import path from "path";
+import {config} from "../config/config";
 
 const INVOICE_LIMIT = Number(process.env.INVOICE_LIMIT ?? 5);
 
@@ -13,7 +14,7 @@ function fileFailed(req : Request, file: Express.Multer.File, reason: string){
 
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
-    cb(null, './uploads')
+    cb(null, config.UPLOADS_DIR)
   },
   filename: function (_req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + crypto.randomUUID();
