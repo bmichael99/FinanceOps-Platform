@@ -278,7 +278,12 @@ export const getInvoice = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) => {
-  const invoiceId = req.params.invoiceId;
+  const paramSchema = z.object({
+    invoiceId: z.string(),
+  });
+  const result = paramSchema.safeParse(req.params);
+  if(!result.success) return res.sendStatus(400);
+  const {invoiceId} = result.data;
   if(!invoiceId){
     return res.sendStatus(400); //bad request
   }
