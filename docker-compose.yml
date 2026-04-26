@@ -9,11 +9,45 @@ services:
     environment:
       JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_priv.pem
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_pub.pem
+      FRONTEND_URL: frontend
+      REDIS_HOST: redis
+      DATABASE_URL:
     ports:
       - "3000:3000"
-
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   worker:
     build:
       context: .
       dockerfile: backend.Dockerfile
     command: ["node", "apps/backend/dist/workers/index.js"]
+  frontend:
+    build:
+      context: .
+      dockerfie: frontend.Dockerfile
+    ports:
+      - "8080:80"
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  volumes:
+    redis_data:
+    pgdata:
