@@ -1,6 +1,3 @@
-# ---- Stage 0: generate RSA asymmetric keys ----
-
-
 # ---- Stage 1: dependencies ----
 FROM node:25.9-alpine AS deps
 
