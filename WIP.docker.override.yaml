@@ -1,0 +1,80 @@
+#for dev
+services:
+  backend:
+    environment:
+      NODE_ENV: development
+    develop:
+      watch:
+        # Sync source code changes — nodemon/tsx will pick them up
+        - action: sync
+          path: ./apps/backend/src
+          target: /workspace/apps/backend/src
+        # Sync shared package source
+        - action: sync
+          path: ./packages/schemas/src
+          target: /workspace/packages/schemas/src
+        - action: sync
+          path: ./packages/types/src
+          target: /workspace/packages/types/src
+        # Rebuild the image when dependencies change
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./package-lock.json
+        - action: rebuild
+          path: ./apps/backend/package.json
+        - action: rebuild
+          path: ./packages/schemas/package.json
+        - action: rebuild
+          path: ./packages/types/package.json
+  worker:
+    environment:
+      NODE_ENV: development
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/backend/src
+          target: /workspace/apps/backend/src
+        - action: sync
+          path: ./packages/schemas/src
+          target: /workspace/packages/schemas/src
+        - action: sync
+          path: ./packages/types/src
+          target: /workspace/packages/types/src
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./package-lock.json
+        - action: rebuild
+          path: ./apps/backend/package.json
+        - action: rebuild
+          path: ./packages/schemas/package.json
+        - action: rebuild
+          path: ./packages/types/package.json
+  frontend:
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/frontend/src
+          target: /workspace/apps/frontend/src
+        - action: sync
+          path: ./packages/schemas/src
+          target: /workspace/packages/schemas/src
+        - action: sync
+          path: ./packages/types/src
+          target: /workspace/packages/types/src
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./apps/frontend/package.json
+        - action: rebuild
+          path: ./packages/schemas/package.json
+        - action: rebuild
+          path: ./packages/types/package.json
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
