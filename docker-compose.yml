@@ -1,17 +1,33 @@
 services:
+  migrator:
+    build:
+      context: .
+      dockerfile: backend.DockerFile
+    command: ["npx", "prisma", "migrate", "deploy", "--schema=apps/backend/src/prisma/schema.prisma"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
   backend:
     build:
       context: .
-      dockerfile: backend.Dockerfile
+      dockerfile: backend.DockerFile
     volumes:
       - ./apps/backend/id_rsa_priv.pem:/run/secrets/jwt_priv.pem:ro
       - ./apps/backend/id_rsa_pub.pem:/run/secrets/jwt_pub.pem:ro
+      - uploads:/data/uploads
     environment:
       JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_priv.pem
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_pub.pem
-      FRONTEND_URL: frontend
+      FRONTEND_URL: http://localhost:5173 #be careful here, I use this env variable for a redirect, so we need to use the url that the browser will use
       REDIS_HOST: redis
-      DATABASE_URL:
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}?schema=public
+      UPLOADS_DIR: /data/uploads
+    env_file:
+      - ./apps/backend/.env
     ports:
       - "3000:3000"
     depends_on:
@@ -19,35 +35,64 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+  worker:
+    build:
+      context: .
+      dockerfile: backend.DockerFile
+    volumes:
+      - uploads:/data/uploads
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}?schema=public
+      UPLOADS_DIR: /data/uploads
+    env_file:
+      - ./apps/backend/.env
+    command: ["node", "apps/backend/dist/workers/index.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.DockerFile
+    environment:
+      VITE_API_URL: http://localhost:3000 #don't use backend:3000 here because we need to reference what the browser would reference, since these calls are not in the container but in my browser. frontend server just serves the html
+    env_file:
+      - ./apps/frontend/.env
+    ports:
+      - "5173:80"
   redis:
     image: redis:7-alpine
     volumes:
       - redis_data:/data
+    ports:
+      - "6379"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-  worker:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
-    command: ["node", "apps/backend/dist/workers/index.js"]
-  frontend:
-    build:
-      context: .
-      dockerfie: frontend.Dockerfile
-    ports:
-      - "8080:80"
   postgres:
     image: postgres:16-alpine
     volumes:
       - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 5
-  volumes:
-    redis_data:
-    pgdata:
+volumes:
+  redis_data:
+  pgdata:
+  uploads:
