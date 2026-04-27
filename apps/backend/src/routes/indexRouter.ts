@@ -3,5 +3,6 @@ import * as indexController from "../controllers/indexController.js";
 const  indexRouter = Router();
 
 indexRouter.get("/", indexController.showHomePage);
+indexRouter.get("/health", indexController.healthCheck);
 
 export default indexRouter;

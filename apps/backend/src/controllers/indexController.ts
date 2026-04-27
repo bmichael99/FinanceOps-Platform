@@ -11,6 +11,10 @@ export const showHomePage = (_req : Request, res : Response) => {
   res.render('index', {title: 'Express Template!'});
 };
 
+export const healthCheck = (_req : Request, res : Response) => {
+  res.sendStatus(200);
+};
+
 // export const SignUpPost = async (req : Request,res : Response, next : NextFunction) => {
 //   try{
 //     const hashedPassword = await bcrypt.hash(req.body.password, 10);
