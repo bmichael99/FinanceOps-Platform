@@ -10,26 +10,66 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  # build:
 
+  #   runs-on: ubuntu-latest
+
+  #   strategy:
+  #     matrix:
+  #       node-version: [22.x]
+  #       # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Use Node.js ${{ matrix.node-version }}
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: ${{ matrix.node-version }}
+  #       cache: 'npm'
+  #   - run: npm ci
+  #   - run: npx prisma generate --schema=apps/backend/src/prisma/schema.prisma
+  #   - run: npm run build --workspace=packages/schemas/
+  #   - run: npm run build --workspace=packages/types/
+  #   - run: npm run build --workspace=apps/backend/
+  #   - run: npm run build --workspace=apps/frontend/
+  #   # - run: npm test
+
+  docker:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npx prisma generate --schema=apps/backend/src/prisma/schema.prisma
-    - run: npm run build --workspace=packages/schemas/
-    - run: npm run build --workspace=packages/types/
-    - run: npm run build --workspace=apps/backend/
-    - run: npm run build --workspace=apps/frontend/
-    # - run: npm test
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - 
+        name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend.DockerFile
+          push: true
+          tags: |
+            blitz66/financeops_backend:latest
+            blitz66/financeops_backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - 
+        name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend.DockerFile
+          push: true
+          tags: |
+            blitz66/financeops_frontend:latest
+            blitz66/financeops_frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
