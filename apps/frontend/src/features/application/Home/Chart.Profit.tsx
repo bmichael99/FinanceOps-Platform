@@ -21,6 +21,7 @@ type Props = {
 }
 
 function ProfitChartCard({chartData}: Props){
+
   return(
     <Card className="w-full">
       <CardHeader>
@@ -40,7 +41,14 @@ function ProfitChartCard({chartData}: Props){
 
 
 function ProfitChart({chartData}: Props) {
-  console.log("chart data:" + JSON.stringify(chartData));
+    if(chartData.length == 0){
+    return(
+      <div className="h-[350px] w-full flex justify-center items-center">
+        <p className="text-muted-foreground">No data</p>
+      </div>
+    )
+  }
+
   return (
     <div>
     <ChartContainer config={chartConfig} className="min-h-[200px] max-h-[350px] w-full">
