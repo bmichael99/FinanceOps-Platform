@@ -20,7 +20,7 @@ import express from "express";
 const app = express();
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:8000'], //frontend URL here
+  origin: ['http://localhost:5173', 'http://localhost:8000', 'http://frontend:80'], //frontend URL here
   credentials: true,               //enable Set-Cookie and other credentials
 };
 app.use(cors(corsOptions));
