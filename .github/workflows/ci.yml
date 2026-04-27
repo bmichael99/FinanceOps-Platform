@@ -27,7 +27,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npx prisma generate
+    - run: npx prisma generate --schema=apps/backend/src/prisma/schema.prisma
     - run: npm run build --workspace=packages/schemas/
     - run: npm run build --workspace=packages/types/
     - run: npm run build --workspace=apps/backend/
