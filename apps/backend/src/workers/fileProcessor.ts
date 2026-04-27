@@ -22,8 +22,10 @@ export function createWorker(){
     await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "PROCESSING"})
     await job.updateProgress("PROCESSING");
 
+    const filePath = path.join(config.UPLOADS_DIR, data.fileName);
+
     //send file to get processed by azure, then save extracted data to database. Also update status.
-    const extractedData = await processDocumentData(data.fileName);
+    const extractedData = await processDocumentData(filePath, data.fileName);
     console.log(extractedData);
 
     const storeInvoice = await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "SAVING" , ...extractedData});
@@ -32,7 +34,7 @@ export function createWorker(){
     //TODO:API uploads straight to S3 (or a staging bucket), then enqueues the job with the S3 key. 
     //The worker downloads from S3, processes, uploads result, deletes staging. This makes your workers truly stateless and horizontally scalable.
     // //send file to s3 after processing is finished.
-    const filePath = path.join(config.UPLOADS_DIR, data.fileName);
+    
     await uploadFile(data.fileName, filePath, storeInvoice.mimeType);
     await fs.promises.unlink(filePath);
     await delay(1500); //for testing only, remove when uncommenting everything else.
