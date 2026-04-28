@@ -86,8 +86,8 @@ jobs:
             set -e
             cd /home/michael/projects/FinanceOps-Platform
             git pull
-            sudo docker compose pull
+            docker compose pull
             docker compose run --rm migrator
-            sudo docker compose run -d
+            docker compose run -d
             docker image prune -f
         
