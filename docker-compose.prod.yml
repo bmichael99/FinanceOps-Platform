@@ -70,10 +70,6 @@ services:
     restart: unless-stopped
   frontend:
     image: blitz66/financeops_frontend:latest
-    environment:
-      VITE_API_URL: https://financeapi.michaelbrandmeyer.com #don't use backend:3000 here because we need to reference what the browser would reference, since these calls are not in the container but in my browser. frontend server just serves the html
-    env_file:
-      - ./apps/frontend/.env
     ports:
       - "5173:80"
     restart: unless-stopped
