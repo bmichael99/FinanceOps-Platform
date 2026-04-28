@@ -150,11 +150,11 @@ import invoiceRouter from "./routes/invoiceRouter";
 import { delay } from './utils/delay';
 import { closeAllConnections } from "./utils/clientHandler";
 
-app.use(indexRouter);
-app.use(usersRouter);
-app.use(authRouter);
-app.use(refreshRouter);
-app.use(invoiceRouter);
+app.use("/api", indexRouter);
+app.use("/api", usersRouter);
+app.use("/api", authRouter);
+app.use("/api", refreshRouter);
+app.use("/api", invoiceRouter);
 
 /**
  * -------------------- ERROR HANDLING --------------------

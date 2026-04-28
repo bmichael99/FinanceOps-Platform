@@ -3,10 +3,10 @@ import useAuth from "./useAuth";
 
 const useRefreshToken = () => {
   const {setAuth} = useAuth();
-  const API_URL = import.meta.env.VITE_API_URL;
+  // const API_URL = import.meta.env.VITE_API_URL;
 
   const refresh = async () =>{
-    const response = await fetch(API_URL + '/refresh/', {
+    const response = await fetch('/api/refresh/', {
       method: 'GET',
       credentials: 'include'
     });

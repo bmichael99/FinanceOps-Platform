@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import useRefreshToken from '@/hooks/useRefreshToken';
 import GoogleLogInButton from './GoogleLogInButton';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ function SignupPage() {
     isSubmitting.current = true;
     setLoadingRequest(true);
     clearErrors();
-    const response = await fetch(API_URL + '/auth/register', {
+    const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

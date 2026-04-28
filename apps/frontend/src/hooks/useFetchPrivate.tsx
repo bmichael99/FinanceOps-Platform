@@ -3,7 +3,7 @@ import useAuth from "./useAuth";
 import { useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 interface FetchPrivateType {
   endpoint : string,
@@ -35,7 +35,7 @@ const useFetchPrivate = () => {
         signal: abortController?.signal,
       }
 
-      return await fetch(API_URL + endpoint, fetchObj);
+      return await fetch("/api" + endpoint, fetchObj);
     };
 
     let response = await makeRequest(auth.accessToken);

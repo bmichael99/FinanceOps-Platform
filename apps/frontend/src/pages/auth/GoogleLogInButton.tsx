@@ -6,8 +6,8 @@ type Props = {
 
 
 function GoogleLogInButton({loginContext}: Props) {
-  const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const API_URL = import.meta.env.VITE_API_URL;
+  const CLIENT_ID = "361356369731-o4btj2ca10ho4nku5rjihf80g9fm6ms3";
+  // const API_URL = import.meta.env.VITE_API_URL;
 
   return (
     <>
@@ -15,7 +15,7 @@ function GoogleLogInButton({loginContext}: Props) {
         data-client_id={`${CLIENT_ID}.apps.googleusercontent.com`}
         data-context={loginContext == "LogIn" ? "signin" : "signup"}
         data-ux_mode="popup"
-        data-login_uri={`${API_URL}/auth/google/receiver`}
+        data-login_uri={`/api/auth/google/receiver`}
         data-auto_prompt="false">
     </div>
 

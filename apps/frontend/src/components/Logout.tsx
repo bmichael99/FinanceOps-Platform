@@ -2,7 +2,7 @@ import {useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 function Logout() {
   const { setAuth } = useAuth();
@@ -11,7 +11,7 @@ function Logout() {
   useEffect(() => {
     const doLogout = async () => {
       try {
-        await fetch(API_URL + '/auth/log-out/', {
+        await fetch('/api/auth/log-out/', {
           method: "GET",
           credentials: "include",
         });

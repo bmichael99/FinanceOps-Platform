@@ -15,7 +15,7 @@ import * as z from "zod";
 import UploadStatusCard from './components/UploadStatusCard';
 import { type FileResponseType } from '@finance-platform/types';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 type FileType = {
   id: string,
@@ -183,7 +183,7 @@ function UploadInvoicePage() {
 
   useEffect(() => {
     //SSE for file processing status updates
-    const evtSource = new EventSource(API_URL + '/invoices/status', {
+    const evtSource = new EventSource('/invoices/status', {
       withCredentials: true,
     });
     evtSource.addEventListener("fileStatus", (event) => {
