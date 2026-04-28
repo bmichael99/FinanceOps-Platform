@@ -1,4 +1,18 @@
 services:
+  caddy:
+      image: caddy:2-alpine
+      restart: unless-stopped
+      ports:
+        - "80:80"
+        - "443:443"
+        - "443:443/udp"  # for HTTP/3
+      volumes:
+        - ./Caddyfile:/etc/caddy/Caddyfile:ro
+        - caddy_data:/data
+        - caddy_config:/config
+      depends_on:
+        - frontend
+        - backend
   migrator:
     image: blitz66/financeops_backend:latest
     command: ["npx", "prisma", "migrate", "deploy", "--schema=apps/backend/src/prisma/schema.prisma"]
@@ -93,3 +107,5 @@ volumes:
   redis_data:
   pgdata:
   uploads:
+  caddy_data:
+  caddy_config:
