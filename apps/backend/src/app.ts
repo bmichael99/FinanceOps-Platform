@@ -133,7 +133,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.set("Expires", "0");
   }
   if(req.method == "GET"){
-    if(req.path.startsWith("/refresh") || req.path.startsWith("/auth") || req.path.startsWith("/invoices")){
+    if(req.path.startsWith("/api/refresh") || req.path.startsWith("/api/auth") || req.path.startsWith("/api/invoices")){
       res.set("Cache-Control", "no-store, private");
     } else {
       res.set("Cache-Control", "max-age=300, must-revalidate")
