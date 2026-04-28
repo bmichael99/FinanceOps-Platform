@@ -134,7 +134,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
   if(req.method == "GET"){
     if (req.path.startsWith("/api")) {
-      res.set("Cache-Control", "no-store, private");
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+      res.set("Expires", "0");
     } else {
       res.set("Cache-Control", "max-age=300, must-revalidate")
     }
