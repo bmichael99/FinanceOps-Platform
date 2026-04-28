@@ -107,7 +107,7 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   const CSP = [
     "connect-src 'self' https://accounts.google.com/gsi/",
     "frame-src 'self' https://accounts.google.com/gsi/",
-    "script-src 'self' https://accounts.google.com/gsi/client",
+    "script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client",
     "style-src 'self' https://accounts.google.com/gsi/style",
     "default-src 'self' https://accounts.google.com/gsi/"
   ];
