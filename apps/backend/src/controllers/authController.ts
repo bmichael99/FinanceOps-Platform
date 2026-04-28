@@ -7,6 +7,14 @@ import z from "zod";
 import * as service from "../services/authService.js";
 import { Prisma } from '../generated/prisma'
 dotenv.config();
+import type { CookieOptions } from 'express';
+
+export const refreshTokenCookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: 'none',
+  secure: process.env.NODE_ENV == 'production',
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};
 
 export const registerUserPost = async (req : Request, res : Response, next : NextFunction) => {
   try{
@@ -23,7 +31,7 @@ export const registerUserPost = async (req : Request, res : Response, next : Nex
     await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
     //send refresh and access token to client
-    res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: "none", secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
+    res.cookie('jwt', jwt.refreshToken, refreshTokenCookieOptions);
     res.status(200).json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires});
   }
   catch(err){
@@ -53,7 +61,7 @@ export const logInUserPost = async (req : Request, res : Response, next : NextFu
       await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
       //send access and refresh token to client
-      res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: 'none', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
+      res.cookie('jwt', jwt.refreshToken, refreshTokenCookieOptions);
       res.status(200).json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires});
     
     }
@@ -69,7 +77,7 @@ export const handleLogout = async (req : Request, res : Response, next: NextFunc
 
   //check for jwt cookie that we saved in http-only
   if(!cookies?.jwt){
-    res.status(204).json({success:true, msg: "no content, cookie cleared."}); //no content, successful
+    return res.sendStatus(204); //no content, successful, cookie cleared already
   }
   const refreshToken = cookies.jwt;
 
@@ -77,13 +85,13 @@ export const handleLogout = async (req : Request, res : Response, next: NextFunc
   try{
     const user = await db.getUserByRefreshToken(refreshToken);
     if(!user){
-      res.clearCookie('jwt', {httpOnly: true, sameSite: 'none', secure: true});
-      return res.status(204).json({success:true, msg: "no content, cookie cleared."});
+      res.clearCookie('jwt', refreshTokenCookieOptions);
+      return res.sendStatus(204);
     }
 
     //delete refreshtoken in db
     await db.updateUserDeleteRefreshToken(user.id);
-    res.clearCookie('jwt', {httpOnly: true, sameSite: 'none', secure: true});
+    res.clearCookie('jwt', refreshTokenCookieOptions);
     res.sendStatus(204);
   } catch(err){
     next(err);
@@ -142,7 +150,7 @@ try{
     await db.updateUserRefreshToken(jwt.refreshToken,user.id);
 
     //send refresh token to client
-    res.cookie('jwt', jwt.refreshToken, {httpOnly: true, sameSite: "none", secure: true, maxAge: 30 * 24 * 60 * 60 * 1000});
+    res.cookie('jwt', jwt.refreshToken, refreshTokenCookieOptions);
     //json({success: true, user: {id: user.id, username: user.username}, accessToken: jwt.accessToken, accessExpiresIn: jwt.accessExpires}).
     res.status(200).redirect(`${process.env.FRONTEND_URL}/dashboard`);
   

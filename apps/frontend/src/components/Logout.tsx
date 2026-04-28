@@ -11,7 +11,7 @@ function Logout() {
   useEffect(() => {
     const doLogout = async () => {
       try {
-        await fetch('/api/auth/log-out/', {
+        await fetch('/api/auth/log-out', {
           method: "GET",
           credentials: "include",
         });
@@ -19,6 +19,7 @@ function Logout() {
         console.error("Logout failed:", err);
       } finally {
         //clear auth state in memory
+        console.log("final block hitting, setting done");
         setAuth({});
         setDone(true);
       }

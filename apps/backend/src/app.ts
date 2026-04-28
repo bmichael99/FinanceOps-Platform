@@ -90,8 +90,12 @@ passport.use(strategy);
  * Fake Delay
  */
 
+
 app.use(async (_req,_res,next) => {
-  await delay(1000);
+  if(process.env.NODE_ENV == "dev"){
+    await delay(1000);
+  }
+  
   next();
 })
 
