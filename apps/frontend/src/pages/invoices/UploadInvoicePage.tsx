@@ -183,7 +183,7 @@ function UploadInvoicePage() {
 
   useEffect(() => {
     //SSE for file processing status updates
-    const evtSource = new EventSource('/invoices/status', {
+    const evtSource = new EventSource('/api/invoices/status', {
       withCredentials: true,
     });
     evtSource.addEventListener("fileStatus", (event) => {
