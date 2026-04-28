@@ -104,8 +104,8 @@ if (!googleRequestBodyParseResult.success){
 const googleRequestBodyData = googleRequestBodyParseResult.data;
 //Request cookies
 const googleRequestCookiesSchema = z.object({
-    G_ENABLED_IDPS: z.string().optional,
-    g_state: z.string().optional,
+    G_ENABLED_IDPS: z.string().optional(),
+    g_state: z.string().optional(),
     g_csrf_token: z.string(),
 })
 const googleRequestCookiesParseResult = googleRequestCookiesSchema.safeParse(req.cookies);
