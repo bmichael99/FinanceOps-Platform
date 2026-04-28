@@ -1,8 +1,20 @@
 services:
+  caddy:
+      image: caddy:2-alpine
+      restart: unless-stopped
+      ports:
+        - "80:80"
+        - "443:443"
+        - "443:443/udp"  # for HTTP/3
+      volumes:
+        - ./Caddyfile:/etc/caddy/Caddyfile:ro
+        - caddy_data:/data
+        - caddy_config:/config
+      depends_on:
+        - frontend
+        - backend
   migrator:
-    build:
-      context: .
-      dockerfile: backend.DockerFile
+    image: blitz66/financeops_backend:latest
     command: ["npx", "prisma", "migrate", "deploy", "--schema=apps/backend/src/prisma/schema.prisma"]
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}?schema=public
@@ -11,9 +23,7 @@ services:
         condition: service_healthy
     restart: "no"
   backend:
-    build:
-      context: .
-      dockerfile: backend.DockerFile
+    image: blitz66/financeops_backend:latest
     volumes:
       - ./apps/backend/id_rsa_priv.pem:/run/secrets/jwt_priv.pem:ro
       - ./apps/backend/id_rsa_pub.pem:/run/secrets/jwt_pub.pem:ro
@@ -21,7 +31,7 @@ services:
     environment:
       JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_priv.pem
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_pub.pem
-      FRONTEND_URL: http://localhost:5173 #be careful here, I use this env variable for a redirect, so we need to use the url that the browser will use
+      FRONTEND_URL: https://finance.michaelbrandmeyer.com #be careful here, I use this env variable for a redirect, so we need to use the url that the browser will use
       REDIS_HOST: redis
       REDIS_PORT: 6379
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}?schema=public
@@ -37,10 +47,9 @@ services:
         condition: service_healthy
       migrator:
         condition: service_completed_successfully
+    restart: unless-stopped
   worker:
-    build:
-      context: .
-      dockerfile: backend.DockerFile
+    image: blitz66/financeops_backend:latest
     volumes:
       - uploads:/data/uploads
     environment:
@@ -58,16 +67,12 @@ services:
         condition: service_healthy
       migrator:
         condition: service_completed_successfully
+    restart: unless-stopped
   frontend:
-    build:
-      context: .
-      dockerfile: frontend.DockerFile
-    environment:
-      VITE_API_URL: http://localhost:3000 #don't use backend:3000 here because we need to reference what the browser would reference, since these calls are not in the container but in my browser. frontend server just serves the html
-    env_file:
-      - ./apps/frontend/.env
+    image: blitz66/financeops_frontend:latest
     ports:
       - "5173:80"
+    restart: unless-stopped
   redis:
     image: redis:7-alpine
     volumes:
@@ -79,6 +84,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
   postgres:
     image: postgres:16-alpine
     volumes:
@@ -92,7 +98,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    restart: unless-stopped
 volumes:
   redis_data:
   pgdata:
   uploads:
+  caddy_data:
+  caddy_config:
