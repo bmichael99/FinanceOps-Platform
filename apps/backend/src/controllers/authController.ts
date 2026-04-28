@@ -99,7 +99,7 @@ const googleRequestBodySchema = z.object({
 })
 const googleRequestBodyParseResult = googleRequestBodySchema.safeParse(req.body);
 if (!googleRequestBodyParseResult.success){
-  return res.sendStatus(400).json({message: "Failed to parse the data received.", error: googleRequestBodyParseResult.error});
+  return res.status(400).json({message: "Failed to parse the data received.", error: googleRequestBodyParseResult.error});
 }
 const googleRequestBodyData = googleRequestBodyParseResult.data;
 //Request cookies
@@ -110,13 +110,13 @@ const googleRequestCookiesSchema = z.object({
 })
 const googleRequestCookiesParseResult = googleRequestCookiesSchema.safeParse(req.cookies);
 if (!googleRequestCookiesParseResult.success){
-  return res.sendStatus(400).json({message: "Failed to parse the data received.", error: googleRequestCookiesParseResult.error});
+  return res.status(400).json({message: "Failed to parse the data received.", error: googleRequestCookiesParseResult.error});
 }
 const googleRequestCookiesData = googleRequestCookiesParseResult.data;
 
 //Verify extracted csrf tokens match as recommended in google identity documentation
 if(googleRequestCookiesData.g_csrf_token !== googleRequestBodyData.g_csrf_token){
-  return res.sendStatus(400).json({message: "g_csrf_token token mismatch", error: googleRequestCookiesParseResult.error});
+  return res.status(400).json({message: "g_csrf_token token mismatch", error: googleRequestCookiesParseResult.error});
 }
 
 
