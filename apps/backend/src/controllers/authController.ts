@@ -69,7 +69,7 @@ export const handleLogout = async (req : Request, res : Response, next: NextFunc
 
   //check for jwt cookie that we saved in http-only
   if(!cookies?.jwt){
-    res.status(204).json({success:true, msg: "no content, cookie cleared."}); //no content, successful
+    return res.status(204).json({success:true, msg: "no content, cookie cleared."}); //no content, successful
   }
   const refreshToken = cookies.jwt;
 
