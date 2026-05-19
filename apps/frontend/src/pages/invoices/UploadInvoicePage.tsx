@@ -92,7 +92,7 @@ function UploadInvoicePage() {
         setUploadedFiles((files) => ({
           ...files,
           [file.id]: {
-            ...files[file.id], 
+            ...files[file.id],
             status: "FAILED",
           },
         }));

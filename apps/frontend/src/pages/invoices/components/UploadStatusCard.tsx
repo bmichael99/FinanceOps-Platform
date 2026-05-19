@@ -58,8 +58,8 @@ function UploadStatusTable({uploadedFiles, loading} : tableProps) {
       </TableHeader>
       <TableBody>
         {loading ? <LoadingSkeleton /> :
-        Object.values(uploadedFiles).sort((a,b) => (b.uploadTime.getTime() - a.uploadTime.getTime())).map((file: FileResponseType) => (
-          <FileUploadStatus key={file.fileName} file={file}/>
+        Object.entries(uploadedFiles).sort(([,a],[,b]) => (b.uploadTime.getTime() - a.uploadTime.getTime())).map(([key, file]) => (
+          <FileUploadStatus key={key} file={file}/>
         ))}
       </TableBody>
     </Table>
