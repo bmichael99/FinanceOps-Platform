@@ -10,7 +10,7 @@ declare global {
 
     //for invoiceMiddleware and uploadMiddleware. Contains current invoice count.
     interface Request {
-      currentInvoiceCount?: number;
+      totalInvoiceCount?: number;
       failedInvoiceUploads?: FailedInvoiceUpload[];
     }
   }

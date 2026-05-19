@@ -66,5 +66,6 @@ export type User = {
   createdAt: Date;
   refreshToken: string | null;
   googleUserId: string | null;
+  totalUploadedInvoices: number;
   invoices?: Invoice[];
 };

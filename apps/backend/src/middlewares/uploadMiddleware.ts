@@ -3,6 +3,7 @@ import {Request} from "express";
 import crypto from "crypto";
 import path from "path";
 import {config} from "../config/config";
+import * as db from "../repositories/userRepository";
 
 const INVOICE_LIMIT = Number(process.env.INVOICE_LIMIT ?? 5);
 
@@ -23,7 +24,7 @@ const storage = multer.diskStorage({
 })
 
 const fileFilter = (req : Request, file : Express.Multer.File, cb : FileFilterCallback) => {
-  req.currentInvoiceCount ??= 0;
+  req.totalInvoiceCount ??= 0;
 
   console.log("fieldname: ", file.fieldname);
   //check for invalid field name, should be in the format of my clientID which is: files_UUID, here we check for the "files_" part of the fieldname.
@@ -33,7 +34,7 @@ const fileFilter = (req : Request, file : Express.Multer.File, cb : FileFilterCa
   }
 
   //check if we're past invoice_limit now, initial check is in invoiceMiddleware.ts which checks if we're at limit at time of request
-  if(req.user!.role !== "ADMIN" && req.currentInvoiceCount >= INVOICE_LIMIT){
+  if(req.user!.role !== "ADMIN" && req.totalInvoiceCount >= INVOICE_LIMIT){
     fileFailed(req,file,"quota");
     return cb(null,false);
   }
@@ -45,7 +46,7 @@ const fileFilter = (req : Request, file : Express.Multer.File, cb : FileFilterCa
     return cb(null, false);
   }
 
-  req.currentInvoiceCount++;
+  req.totalInvoiceCount++;
   return cb(null, true);
 }
 

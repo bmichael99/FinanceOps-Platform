@@ -57,3 +57,19 @@ export const getUserByGoogleId = async (id : string) => {
 
   return user;
 }
+
+export const getTotalUploadedInvoicesByUserId = async (userId: number) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {id: userId},
+    select: {totalUploadedInvoices: true},
+  })
+  return userData.totalUploadedInvoices;
+}
+
+export const incrementTotalUploadedInvoicesByUserId = async (userId: number) => {
+  const userData = await prisma.user.update({
+    where: {id: userId},
+    data: {totalUploadedInvoices: {increment: 1}},
+  })
+  return userData.totalUploadedInvoices;
+}
