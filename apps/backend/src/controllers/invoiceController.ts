@@ -62,9 +62,11 @@ export async function createInvoice(req : Request, res : Response) {
     return res.status(400).json("No files submitted. That shouldn't even be possible.");
   }
 
-  const results = await Promise.allSettled(files?.map((file : Express.Multer.File) => 
-    db.createInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'})
-  ))
+  //upload and invoice middleware will ensure that we don't go over upload limit
+  const results = await Promise.allSettled(files?.map((file : Express.Multer.File) => {
+    const invoice = db.createUploadedInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'});
+    return invoice;
+  }))
 
   const fileResponse: FileResponseType[] = [];
 
