@@ -17,6 +17,25 @@ export const createInvoice = async (invoiceData : Prisma.InvoiceCreateInput) => 
     return invoice;
 }
 
+export const createUploadedInvoice = async (invoiceData : Prisma.InvoiceCreateInput) => {
+    const invoice = await prisma.$transaction(async (tx) => {
+      const invoice = await tx.invoice.create({
+        data: {
+          ...invoiceData,
+        },
+      });
+
+      await tx.user.update({
+        where: {id: invoice.userId},
+        data: {totalUploadedInvoices: {increment: 1}}
+      })
+
+      return invoice;
+    })
+
+    return invoice;
+}
+
 export const updateInvoice = async (userId: number, fileName : string, invoiceData : Prisma.InvoiceUpdateInput) => {
 
     const invoice = await prisma.invoice.update({
