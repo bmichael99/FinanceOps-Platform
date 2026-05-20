@@ -18,7 +18,8 @@ export function createWorker(){
 
   const fileProcessor = new Worker('FileProcessing', async (job : Job) => {
     const data : fileProcessingData = job.data;
-
+    
+    await delay(500);
     await db.updateInvoice(data.userId, data.fileName, {currentProcessingStatus: "PROCESSING"})
     await job.updateProgress("PROCESSING");
 
@@ -37,7 +38,7 @@ export function createWorker(){
     
     await uploadFile(data.fileName, filePath, storeInvoice.mimeType);
     await fs.promises.unlink(filePath);
-    await delay(1500); //for testing only, remove when uncommenting everything else.
+    await delay(500); //for testing only, remove when uncommenting everything else.
 
     // return s3Response;
     console.log(`Dev Build, Processed: ${data.fileName}`)

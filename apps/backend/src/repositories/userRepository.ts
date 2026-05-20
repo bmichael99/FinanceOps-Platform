@@ -66,10 +66,10 @@ export const getTotalUploadedInvoicesByUserId = async (userId: number) => {
   return userData.totalUploadedInvoices;
 }
 
-export const incrementTotalUploadedInvoicesByUserId = async (userId: number) => {
+export const incrementTotalUploadedInvoicesByUserId = async (userId: number, increment_amount: number) => {
   const userData = await prisma.user.update({
     where: {id: userId},
-    data: {totalUploadedInvoices: {increment: 1}},
+    data: {totalUploadedInvoices: {increment: increment_amount}},
   })
   return userData.totalUploadedInvoices;
 }

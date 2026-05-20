@@ -18,6 +18,7 @@ import { invoiceFormSchema, InvoiceFormType } from "@finance-platform/schemas";
 import prisma from "../config/prisma";
 import { getLastInvoiceSumsGroupedByMonth, getLastInvoiceSumsGroupedByDay } from "../services/invoiceService";
 import * as service from "../services/invoiceService";
+import * as user_db from "../repositories/userRepository"
 dotenv.config();
 
 export interface fileProcessingData {
@@ -54,7 +55,7 @@ redis.on("message", (_channel, message) => {
   // console.log(`Received ${message} from ${channel}`);
 });
 
-export async function createInvoice(req : Request, res : Response) { 
+export const createInvoice = asyncHandler(async (req : Request, res : Response) => { 
   const files = req.files as Express.Multer.File[];
   // const clientIds = Array.isArray(req.body.clientIds) ? req.body.clientIds : [req.body.clientIds];
 
@@ -64,9 +65,11 @@ export async function createInvoice(req : Request, res : Response) {
 
   //upload and invoice middleware will ensure that we don't go over upload limit
   const results = await Promise.allSettled(files?.map((file : Express.Multer.File) => {
-    const invoice = db.createUploadedInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'});
+    const invoice = db.createInvoice({user: { connect: { id: req.user!.id } },fileName: file.filename, originalFileName: file.originalname, mimeType: file.mimetype, filePath: file.path, currentProcessingStatus: 'PENDING'});
     return invoice;
   }))
+
+  await user_db.incrementTotalUploadedInvoicesByUserId(req.user!.id, files.length);
 
   const fileResponse: FileResponseType[] = [];
 
@@ -93,7 +96,7 @@ export async function createInvoice(req : Request, res : Response) {
   }
 
   res.status(200).json(fileResponse);
-}
+});
 
 export async function invoiceEvents(req: Request, res : Response){
   res.setHeader('Content-Type', 'text/event-stream');
