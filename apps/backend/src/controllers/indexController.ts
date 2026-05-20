@@ -14,21 +14,3 @@ export const showHomePage = (_req : Request, res : Response) => {
 export const healthCheck = (_req : Request, res : Response) => {
   res.sendStatus(200);
 };
-
-// export const SignUpPost = async (req : Request,res : Response, next : NextFunction) => {
-//   try{
-//     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-//     await db.createUser(req.body.first_name, req.body.last_name, req.body.username, hashedPassword);
-//     res.redirect("/");
-//   }
-//   catch(err){
-//     return next(err);
-//   }
-// };
-
-// export const LogInPost = (req : Request,res : Response,next : NextFunction) => {
-//     passport.authenticate("local", {
-//     successRedirect: "/",
-//     failureRedirect: "/"
-//     })(req, res, next);
-// };
