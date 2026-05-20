@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useNavigate } from 'react-router-dom'
 import type { InvoiceFormType } from '@finance-platform/schemas'
 import { toast } from 'sonner'
+import useVerifyCount from '@/hooks/useVerifyCount'
 
 type Props = {}
 
@@ -30,6 +31,7 @@ function VerifyInvoicePage({}: Props) {
   const navigate = useNavigate();
   const [isSubmittingForm, setIsSubmittingForm] = useState<boolean>(false);
   const isSubmittingFormRef = useRef(false);
+    const {setVerifyCount} = useVerifyCount();
 
   //fetch a list of completed invoices
   useEffect(() => {
@@ -40,8 +42,9 @@ function VerifyInvoicePage({}: Props) {
       const status = "COMPLETED";
       const verified = false;
       const response = await fetchPrivate({endpoint: `/invoices?view=${view}&fields=${fields}&status=${status}&verified=${verified}`, method: "GET"});
-      const data = await response.json();
+      const data: GetInvoiceNamesResponseType[] = await response.json();
       setInvoiceList(data);
+      setVerifyCount(data.length);
       setLoadingInvoiceList(false);
     }
     getInvoiceNames();
@@ -76,6 +79,7 @@ function VerifyInvoicePage({}: Props) {
     const response = await fetchPrivate({endpoint: `/invoices/${invoiceId}/verify`, method: "POST", bodyData: JSON.stringify(data), content_type: "application/json"}); //
     console.log(await response.json());
     if (response.ok){
+        setVerifyCount((curr) => curr - 1);
         await navigate(0);
     }else{
       toast.error("An error occured. Please try again later.");

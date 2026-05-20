@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import type { GetInvoiceCountResponse } from "@finance-platform/types";
 import useGetManyInvoices from "@/api/useGetManyInvoices";
 import useGetInvoiceCount from "@/api/useGetInvoiceCount";
+import useVerifyCount from "@/hooks/useVerifyCount";
 
 
  
@@ -76,7 +77,7 @@ const analyticItems = [
  
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const getInvoiceCount = useGetInvoiceCount();
-  const [count, setCount] = useState(0);
+  const {verifyCount, setVerifyCount} = useVerifyCount();
   
   useEffect(() => {
     const abortController = new AbortController();
@@ -85,7 +86,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       if(response.ok){
         const data : GetInvoiceCountResponse = await response.json();
         console.log(data)
-        setCount(data.count);
+        setVerifyCount(data.count);
       }
     }
     getUnverifiedInvoiceCount();
@@ -127,7 +128,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                      {(item.count && count > 0) && <Badge className = "text-destructive font-semibold" variant={"secondary"}>{count}</Badge>}
+                      {(item.count && verifyCount > 0) && <Badge className = "text-destructive font-semibold" variant={"secondary"}>{verifyCount}</Badge>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

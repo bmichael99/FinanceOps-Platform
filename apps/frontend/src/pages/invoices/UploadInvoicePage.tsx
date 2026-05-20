@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as z from "zod";
 import UploadStatusCard from './components/UploadStatusCard';
 import { type FileResponseType } from '@finance-platform/types';
+import useVerifyCount from '@/hooks/useVerifyCount';
 
 // const API_URL = import.meta.env.VITE_API_URL;
 
@@ -34,6 +35,7 @@ function UploadInvoicePage() {
   const [loading, setLoading] = useState(true);
   const [loadingRequest,setLoadingRequest] = useState(false);
   const isSubmitting = useRef(false);
+  const {setVerifyCount} = useVerifyCount();
 
   const fileSchema = z.array(
     z.object({
@@ -189,6 +191,9 @@ function UploadInvoicePage() {
     evtSource.addEventListener("fileStatus", (event) => {
       console.log(event.data);
       const data: {userId: number, fileName: string, originalFileName: string, uploadTime: Date, status: "UPLOADING" | "PENDING" | "PROCESSING" | "SAVING" | "COMPLETED" | "FAILED"} = JSON.parse(event.data);
+      if(data.status == "COMPLETED"){
+        setVerifyCount((curr) => curr + 1);
+      }
       setUploadedFiles((files) => ({
         ...files,
         [data.fileName]: {
