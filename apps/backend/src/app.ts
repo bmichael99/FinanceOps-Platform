@@ -13,6 +13,7 @@ import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
 import { PUB_KEY } from "./config/key";
 import { redis } from "./config/redis";
+import { rateLimiter } from "./middlewares/rateLimitMiddleware";
 
 //imports the express framework
 import express from "express";
@@ -162,7 +163,6 @@ import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
 import { delay } from './utils/delay';
 import { closeAllConnections } from "./utils/clientHandler";
-import { rateLimiter } from "./middlewares/rateLimitMiddleware";
 
 app.use("/api", indexRouter);
 app.use("/api", usersRouter);
