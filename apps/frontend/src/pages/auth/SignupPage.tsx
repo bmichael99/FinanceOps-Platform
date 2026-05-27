@@ -57,7 +57,10 @@ function SignupPage() {
 
       if(responseData && response.status == 409){
         setError('username', {message: "A user with that username already exists."});
-      }else{
+      }else if(response.status == 429){
+        setError('password', {message: "Too many attempts. Please try again later."});
+        setError('username', {});
+      } else {
         setError('firstName', {});
         setError('username', {});
         setError('password', {message: "Server error."});

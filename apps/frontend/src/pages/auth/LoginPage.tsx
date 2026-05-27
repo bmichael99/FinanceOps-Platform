@@ -74,7 +74,10 @@ function LoginPage() {
         
       }else if (responseData?.type == "username"){
         setError('username', {message: "Username does not exist."});
-      } else{
+      } else if(response.status == 429){
+        setError('password', {message: "Too many attempts. Please try again later."});
+        setError('username', {});
+      } else {
         setError('password', {message: "Server error."});
         setError('username', {});
       }
