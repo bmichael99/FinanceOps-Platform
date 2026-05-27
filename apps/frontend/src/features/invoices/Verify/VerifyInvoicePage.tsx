@@ -116,7 +116,7 @@ function VerifyInvoicePage({}: Props) {
       {loadingInvoiceList && <Spinner></Spinner>}
       <NativeSelect onChange={(e) => handleInvoiceSelect(e.target.value)}>
         <NativeSelectOption value="">{loadingInvoiceList ? "Loading.." : "Select Invoice"}</NativeSelectOption>
-        {invoiceList.map(invoice => <NativeSelectOption key={invoice.fileName} value={invoice.fileName}>{invoice.originalFileName}</NativeSelectOption>)}
+        {(invoiceList.length > 0 && !loadingInvoiceList) && invoiceList.map(invoice => <NativeSelectOption key={invoice.fileName} value={invoice.fileName}>{invoice.originalFileName}</NativeSelectOption>)}
       </NativeSelect>
     </div>
     <div className='grid grid-cols-1 xl:grid-cols-2 mb-4 w-full h-full gap-4'>
