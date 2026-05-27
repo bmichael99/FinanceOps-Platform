@@ -12,6 +12,7 @@ import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
 import { PUB_KEY } from "./config/key";
+import { redis } from "./config/redis";
 
 //imports the express framework
 import express from "express";
@@ -86,8 +87,9 @@ const strategy = new JwtStrategy(options, async (payload,done) => {
 
 passport.use(strategy);
 
+
 /**
- * Fake Delay
+ *  -------------------- FAKE DELAY --------------------
  */
 
 
@@ -144,6 +146,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
+ *  -------------------- RATE LIMITING --------------------
+ */
+
+app.use(rateLimiter({capacity: 20, refillRate: 1, refillInterval: 1, prefix: 'global'})); //up to 20 requests in a burst, refilling token bucket at 1 request per 1 second.
+
+/**
  *  -------------------- ROUTER--------------------
  */
 
@@ -154,6 +162,7 @@ import refreshRouter from "./routes/refreshRouter";
 import invoiceRouter from "./routes/invoiceRouter";
 import { delay } from './utils/delay';
 import { closeAllConnections } from "./utils/clientHandler";
+import { rateLimiter } from "./middlewares/rateLimitMiddleware";
 
 app.use("/api", indexRouter);
 app.use("/api", usersRouter);

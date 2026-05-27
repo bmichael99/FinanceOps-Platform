@@ -19,6 +19,7 @@ import prisma from "../config/prisma";
 import { getLastInvoiceSumsGroupedByMonth, getLastInvoiceSumsGroupedByDay } from "../services/invoiceService";
 import * as service from "../services/invoiceService";
 import * as user_db from "../repositories/userRepository"
+import { redis } from "../config/redis";
 dotenv.config();
 
 export interface fileProcessingData {
@@ -29,10 +30,9 @@ export interface fileProcessingData {
     status: JobProgress,
 }
 
-const redis = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
-const redisCache = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
+const redisSub = new IORedis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), maxRetriesPerRequest: null  });
 
-redis.subscribe("FileProcessing", (err, count) => {
+redisSub.subscribe("FileProcessing", (err, count) => {
   if (err) {
     console.error("Failed to subscribe: %s", err.message);
   } else {
@@ -42,7 +42,7 @@ redis.subscribe("FileProcessing", (err, count) => {
   }
 });
 
-redis.on("message", (_channel, message) => {
+redisSub.on("message", (_channel, message) => {
   const data: fileProcessingData = JSON.parse(message);
   const res = getClient(data.userId);
 
@@ -303,7 +303,7 @@ export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) =
     return res.sendStatus(403); //403 foribdden
   }
 
-  const cachedURL = await redisCache.get(invoiceId);
+  const cachedURL = await redis.get(invoiceId);
   //if url is cached, return url.
   if(cachedURL){
     return res.status(200).json({signedURL: cachedURL, wasCached: true});
@@ -312,7 +312,7 @@ export const getS3SignedURL = asyncHandler(async (req: Request, res: Response) =
   //cache signed URL and expire it after 15 minutes, our aws is set to expire links after 16 minutes
   
   if(success === true){
-    await redisCache.set(invoiceId, signedURL, 'EX', 900);
+    await redis.set(invoiceId, signedURL, 'EX', 900);
     res.status(200).json({signedURL, wasCached: false});
   } else{
     res.sendStatus(404);
