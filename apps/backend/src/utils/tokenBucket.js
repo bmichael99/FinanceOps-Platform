@@ -101,27 +101,11 @@ export class TokenBucket{
     this.refillInterval = refillInterval;
     this.redis = redisClient;
 
-    // Calculate SHA1 of the script for EVALSHA
-    this._scriptSha = crypto
-      .createHash("sha1")
-      .update(TOKEN_BUCKET_SCRIPT)
-      .digest("hex");
-    this._scriptLoaded = false;
-  }
+    this.redis.defineCommand("rateLimitScript", {
+        numberOfKeys: 1,
+        lua: exports.TOKEN_BUCKET_SCRIPT,
+    });
 
-  /**
-   * Ensure the Lua script is loaded into Redis.
-   * @private
-   */
-  async _ensureScriptLoaded() {
-    if (!this._scriptLoaded) {
-      try {
-        this._scriptSha = await this.redis.scriptLoad(TOKEN_BUCKET_SCRIPT);
-        this._scriptLoaded = true;
-      } catch {
-        // If loading fails, we'll fall back to EVAL
-      }
-    }
   }
 
   /**
@@ -135,43 +119,19 @@ export class TokenBucket{
    * console.log(`Allowed: ${allowed}, Remaining: ${remaining}`);
    */
   async allow(key) {
-    await this._ensureScriptLoaded();
+      const now = Date.now() / 1000;
 
-    const now = Date.now() / 1000; // Current time in seconds
-
-    let result;
-    try {
-      // Try EVALSHA first (faster if script is cached)
-      result = await this.redis.evalSha(this._scriptSha, {
-        keys: [key],
-        arguments: [
+      const result = await this.redis.rateLimitScript(
+          key,
           String(this.capacity),
           String(this.refillRate),
           String(this.refillInterval),
-          String(now),
-        ],
-      });
-    } catch (err) {
-      if (err.message && err.message.includes("NOSCRIPT")) {
-        // Script not in cache, use EVAL and reload
-        result = await this.redis.eval(TOKEN_BUCKET_SCRIPT, {
-          keys: [key],
-          arguments: [
-            String(this.capacity),
-            String(this.refillRate),
-            String(this.refillInterval),
-            String(now),
-          ],
-        });
-        this._scriptLoaded = false;
-      } else {
-        throw err;
-      }
-    }
+          String(now)
+      );
 
-    const allowed = Boolean(result[0]);
-    const remaining = Number(result[1]);
-
-    return { allowed, remaining };
+      const allowed = Boolean(result[0]);
+      const remaining = Number(result[1]);
+      console.log(remaining);
+      return { allowed, remaining };
   }
 }
