@@ -3,17 +3,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 import prisma from "./config/prisma";
 import passport from "passport";
-import fs from "fs";
 import cookieParser from "cookie-parser";
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptionsWithoutRequest } from 'passport-jwt';
 import cors from "cors";
 import type {Request, Response, NextFunction} from "express";
-import { PrismaClientKnownRequestError } from "./generated/prisma/runtime/edge";
 import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
 import { PUB_KEY } from "./config/key";
-import { redis } from "./config/redis";
 import { rateLimiter } from "./middlewares/rateLimitMiddleware";
+import logger from "./config/logger"
+
 
 //imports the express framework
 import express from "express";
@@ -45,6 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //parse cookies
 app.use(cookieParser());
+
 
 /**
  *  -------------------- PASSPORT SETUP --------------------
@@ -200,7 +200,7 @@ app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
 //starts the server and listens on port 3000
 const PORT = 3000;
 const server = app.listen(PORT, () => {
-  console.log(`My Express app - listening on port ${PORT}!`);
+  console.log(`FinanceOps Express Backend - listening on port ${PORT}!`);
 });
 
 const shutdown = async () => {
