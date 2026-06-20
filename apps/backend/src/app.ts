@@ -150,7 +150,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
  *  -------------------- RATE LIMITING --------------------
  */
 
-app.use(rateLimiter({capacity: 20, refillRate: 1, refillInterval: 1, prefix: 'global'})); //up to 20 requests in a burst, refilling token bucket at 1 request per 1 second.
+// Up to 20 requests in a burst, refilling token bucket at 1 request per 1 second.
+app.use(rateLimiter({capacity: 20, refillRate: 1, refillInterval: 1, prefix: 'global'})); 
 
 /**
  *  -------------------- ROUTER--------------------
