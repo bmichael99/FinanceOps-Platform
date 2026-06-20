@@ -11,7 +11,7 @@ import { Prisma } from './generated/prisma';
 import { MulterError } from "multer";
 import { PUB_KEY } from "./config/key";
 import { rateLimiter } from "./middlewares/rateLimitMiddleware";
-import logger from "./config/logger"
+import log from "./utils/loggerHelper";
 
 
 //imports the express framework
@@ -174,22 +174,21 @@ app.use("/api", invoiceRouter);
  * -------------------- ERROR HANDLING --------------------
  */
 
-app.use((err: any, _req : Request, res : Response, _next : NextFunction) => {
+app.use((err: any, req : Request, res : Response, _next : NextFunction) => {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if(err.code === 'P2002'){
-      console.error("P2002 Prisma error. Unique id already exists");
+      log({err, userId: req.user!.id, level: "error", description: "P2002 Prisma error. Unique id already exists"});
       return res.status(409).json({success: false, msg: "Unique constraint violation. Some unique id already exists"});
     }
-
-    console.error("Prisma error caught: \n", err);
+    log({err, userId: req.user!.id, level: "error", description: "Prisma error caught in global error handler"});
     return res.status(500).json({error: 'Prisma error.', code: err.code, message: err.message});
   }
   else if (err instanceof MulterError){
-    console.error("Multer error caught: \n", err);
+    log({err, userId: req.user!.id, level: "error", description: "Multer error caught in global error handler"});
     return res.status(400).json({error: 'Multer error, invalid upload.', code: err.code, message: err.message});
   }
 
-  console.error("No custom error catching configured for this error in app.ts: \n", err); // Log unexpected errors
+  log({err, userId: req.user!.id, level: "error", description: "Error caught in global error handler"});
   res.status(500).json({ message: 'Something went wrong' });
 });
 
